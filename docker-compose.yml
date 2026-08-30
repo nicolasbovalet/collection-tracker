@@ -1,0 +1,24 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      - DISCOGS_TOKEN=${DISCOGS_TOKEN}
+      - DISCOGS_USER_AGENT=${DISCOGS_USER_AGENT}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-*}
+      - DJANGO_DEBUG=false
+      - DJANGO_DB_PATH=/data/db.sqlite3
+    volumes:
+      - collection_tracker_data:/data
+    expose:
+      - "8000"
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  collection_tracker_data:
