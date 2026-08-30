@@ -74,6 +74,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": None,
+    "URL_FORMAT_OVERRIDE": None,
 }
 
 DISCOGS_TOKEN = os.environ.get("DISCOGS_TOKEN", "")
