@@ -5,14 +5,19 @@ import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 
+import AddToCollectionDialog from "./components/AddToCollectionDialog";
 import CollectionTab from "./components/CollectionTab";
 import SearchBar from "./components/SearchBar";
 import SearchResultsList from "./components/SearchResultsList";
+import { addToCollection } from "./api/releases";
+import { parseArtistTitle } from "./utils/discogsFormat";
 
 export default function App() {
   const [tab, setTab] = useState("collection");
   const [searchResults, setSearchResults] = useState([]);
   const [wishlistedMessage, setWishlistedMessage] = useState("");
+  const [addToCollectionTarget, setAddToCollectionTarget] = useState(null);
+  const [collectionRefreshKey, setCollectionRefreshKey] = useState(0);
 
   const handleResults = useCallback((results) => setSearchResults(results), []);
   const handleWishlisted = useCallback(
@@ -20,8 +25,24 @@ export default function App() {
     []
   );
   const handleAddToCollection = useCallback((result) => {
-    console.log("open add-to-collection dialog for", result);
+    setAddToCollectionTarget(result);
   }, []);
+
+  const handleDialogSubmit = async (dialogPayload) => {
+    const { artist, title } = parseArtistTitle(addToCollectionTarget.title);
+    await addToCollection({
+      discogs_release_id: addToCollectionTarget.id,
+      artist,
+      title,
+      format: (addToCollectionTarget.format || []).join(", "),
+      released_year: addToCollectionTarget.year || null,
+      cover_art_url:
+        addToCollectionTarget.cover_image || addToCollectionTarget.thumb || "",
+      ...dialogPayload,
+    });
+    setAddToCollectionTarget(null);
+    setCollectionRefreshKey((key) => key + 1);
+  };
 
   return (
     <Box>
@@ -44,10 +65,15 @@ export default function App() {
         <Tab label="Import" value="import" />
       </Tabs>
       <Box sx={{ p: 2 }}>
-        {tab === "collection" && <CollectionTab />}
+        {tab === "collection" && <CollectionTab refreshKey={collectionRefreshKey} />}
         {tab === "wishlist" && <Typography>Wishlist view coming soon.</Typography>}
         {tab === "import" && <Typography>Import view coming soon.</Typography>}
       </Box>
+      <AddToCollectionDialog
+        open={Boolean(addToCollectionTarget)}
+        onClose={() => setAddToCollectionTarget(null)}
+        onSubmit={handleDialogSubmit}
+      />
       <Snackbar
         open={Boolean(wishlistedMessage)}
         autoHideDuration={3000}

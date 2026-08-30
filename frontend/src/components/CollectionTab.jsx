@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import FolderSidebar from "./FolderSidebar";
 import CollectionGrid from "./CollectionGrid";
 
-export default function CollectionTab() {
+export default function CollectionTab({ refreshKey }) {
   const [selectedFolderId, setSelectedFolderId] = useState(null);
 
   return (
@@ -16,7 +16,7 @@ export default function CollectionTab() {
         />
       </Box>
       <Box sx={{ flexGrow: 1 }}>
-        <CollectionGrid folderId={selectedFolderId} />
+        <CollectionGrid folderId={selectedFolderId} refreshKey={refreshKey} />
       </Box>
     </Box>
   );
