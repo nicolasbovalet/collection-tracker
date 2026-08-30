@@ -5,7 +5,7 @@ from rest_framework import status as drf_status
 from rest_framework.views import APIView
 
 from .models import Folder, Release
-from .serializers import FolderSerializer, ReleaseSerializer
+from .serializers import FolderSerializer, ReleaseSerializer, AddToWishlistSerializer, AddToCollectionSerializer
 from .discogs import DiscogsClient
 from .csv_import import extract_new_folder_names, parse_csv_rows, commit_import
 
@@ -112,3 +112,19 @@ class CsvImportCommitView(APIView):
         client = DiscogsClient()
         summary = commit_import(rows, folder_mode, client.get_cover_art_url)
         return Response(summary, status=drf_status.HTTP_201_CREATED)
+
+
+class AddToWishlistView(APIView):
+    def post(self, request):
+        serializer = AddToWishlistSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        release = serializer.save()
+        return Response(ReleaseSerializer(release).data, status=drf_status.HTTP_201_CREATED)
+
+
+class AddToCollectionView(APIView):
+    def post(self, request):
+        serializer = AddToCollectionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        release = serializer.save()
+        return Response(ReleaseSerializer(release).data, status=drf_status.HTTP_201_CREATED)

@@ -17,4 +17,6 @@ urlpatterns = [
         views.CsvImportCommitView.as_view(),
         name="csv-import-commit",
     ),
+    path("releases/wishlist/", views.AddToWishlistView.as_view(), name="release-add-wishlist"),
+    path("releases/collection/", views.AddToCollectionView.as_view(), name="release-add-collection"),
 ]
