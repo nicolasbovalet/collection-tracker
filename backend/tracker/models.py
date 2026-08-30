@@ -51,6 +51,11 @@ class Release(models.Model):
     label = models.CharField(max_length=255, blank=True, default="")
     format = models.CharField(max_length=255, blank=True, default="")
     country = models.CharField(max_length=100, blank=True, default="")
+    genre = models.CharField(max_length=255, blank=True, default="")
+    estimated_value = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
+    num_for_sale = models.PositiveIntegerField(null=True, blank=True)
     personal_rating = models.PositiveSmallIntegerField(
         null=True, blank=True, validators=[MaxValueValidator(5)]
     )

@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import IntegrityError
 from django.test import TestCase
 from django.utils import timezone
@@ -51,3 +53,31 @@ class ReleaseModelTests(TestCase):
         self.assertEqual(
             str(release), "Boards of Canada - Music Has the Right to Children"
         )
+
+    def test_new_discogs_metadata_fields_default_blank(self):
+        release = Release.objects.create(
+            discogs_release_id=100,
+            artist="Test Artist",
+            title="Test Title",
+            status=Release.STATUS_WISHLIST,
+            date_added=timezone.now(),
+        )
+        self.assertEqual(release.genre, "")
+        self.assertIsNone(release.estimated_value)
+        self.assertIsNone(release.num_for_sale)
+
+    def test_new_discogs_metadata_fields_can_be_set(self):
+        release = Release.objects.create(
+            discogs_release_id=101,
+            artist="Test Artist",
+            title="Test Title 2",
+            status=Release.STATUS_COLLECTION,
+            date_added=timezone.now(),
+            genre="Rock, Electronic",
+            estimated_value=Decimal("24.99"),
+            num_for_sale=7,
+        )
+        release.refresh_from_db()
+        self.assertEqual(release.genre, "Rock, Electronic")
+        self.assertEqual(release.estimated_value, Decimal("24.99"))
+        self.assertEqual(release.num_for_sale, 7)
