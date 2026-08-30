@@ -97,11 +97,14 @@ from tracker.csv_import import commit_import
 from tracker.models import Release
 
 
-def fake_cover_art(release_id):
-    return f"http://example.com/{release_id}.jpg"
+def fake_release_details(release_id):
+    return {
+        "cover_art_url": f"http://example.com/{release_id}.jpg",
+        "country": "US",
+    }
 
 
-def failing_cover_art(release_id):
+def failing_release_details(release_id):
     raise RuntimeError("Discogs is down")
 
 
@@ -124,7 +127,7 @@ class CommitImportTests(TestCase):
             },
         ]
 
-        summary = commit_import(rows, "per_folder", fake_cover_art)
+        summary = commit_import(rows, "per_folder", fake_release_details)
 
         self.assertEqual(summary["created"], 2)
         self.assertEqual(summary["skipped_duplicates"], 0)
@@ -134,9 +137,11 @@ class CommitImportTests(TestCase):
         self.assertEqual(rock_release.folder.name, "Rock")
         self.assertEqual(rock_release.media_condition, "Very Good Plus")
         self.assertEqual(rock_release.cover_art_url, "http://example.com/553236.jpg")
+        self.assertEqual(rock_release.country, "US")
 
         main_release = Release.objects.get(discogs_release_id=12345)
         self.assertEqual(main_release.folder.name, "Main")
+        self.assertEqual(main_release.country, "US")
 
     def test_main_only_mode_routes_everything_to_main(self):
         rows = [
@@ -147,7 +152,7 @@ class CommitImportTests(TestCase):
             },
         ]
 
-        summary = commit_import(rows, "main_only", fake_cover_art)
+        summary = commit_import(rows, "main_only", fake_release_details)
 
         self.assertEqual(summary["folders_created"], ["Main"])
         self.assertEqual(Release.objects.get(discogs_release_id=1).folder.name, "Main")
@@ -166,13 +171,13 @@ class CommitImportTests(TestCase):
             },
         ]
 
-        summary = commit_import(rows, "per_folder", fake_cover_art)
+        summary = commit_import(rows, "per_folder", fake_release_details)
 
         self.assertEqual(summary["created"], 0)
         self.assertEqual(summary["skipped_duplicates"], 1)
         self.assertEqual(Release.objects.filter(discogs_release_id=1).count(), 1)
 
-    def test_cover_art_failure_leaves_row_created_without_url(self):
+    def test_release_details_failure_leaves_row_created_without_url_or_country(self):
         rows = [
             {
                 "Catalog#": "", "Artist": "A", "Title": "B", "Label": "", "Format": "",
@@ -181,8 +186,9 @@ class CommitImportTests(TestCase):
             },
         ]
 
-        summary = commit_import(rows, "per_folder", failing_cover_art)
+        summary = commit_import(rows, "per_folder", failing_release_details)
 
         self.assertEqual(summary["created"], 1)
         release = Release.objects.get(discogs_release_id=1)
         self.assertEqual(release.cover_art_url, "")
+        self.assertEqual(release.country, "")

@@ -18,7 +18,7 @@ class ReleaseSerializer(serializers.ModelSerializer):
             "id", "discogs_release_id", "catalog_number", "artist", "title",
             "label", "format", "personal_rating", "released_year", "status",
             "folder", "date_added", "media_condition", "sleeve_condition",
-            "notes", "cover_art_url",
+            "notes", "cover_art_url", "country",
         ]
 
 
@@ -29,6 +29,7 @@ class AddToWishlistSerializer(serializers.Serializer):
     format = serializers.CharField(allow_blank=True, default="")
     released_year = serializers.IntegerField(required=False, allow_null=True)
     cover_art_url = serializers.CharField(allow_blank=True, default="")
+    country = serializers.CharField(allow_blank=True, default="")
 
     def create(self, validated_data):
         return Release.objects.create(
@@ -45,6 +46,7 @@ class AddToCollectionSerializer(serializers.Serializer):
     format = serializers.CharField(allow_blank=True, default="")
     released_year = serializers.IntegerField(required=False, allow_null=True)
     cover_art_url = serializers.CharField(allow_blank=True, default="")
+    country = serializers.CharField(allow_blank=True, default="")
     folder = serializers.PrimaryKeyRelatedField(queryset=Folder.objects.all())
     media_condition = serializers.ChoiceField(
         choices=Release.CONDITION_CHOICES, required=False, allow_null=True

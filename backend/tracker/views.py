@@ -134,7 +134,7 @@ class CsvImportCommitView(APIView):
             )
         rows = parse_csv_rows(uploaded_file)
         client = DiscogsClient()
-        summary = commit_import(rows, folder_mode, client.get_cover_art_url)
+        summary = commit_import(rows, folder_mode, client.get_release_details)
         return Response(summary, status=drf_status.HTTP_201_CREATED)
 
 

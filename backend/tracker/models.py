@@ -50,6 +50,7 @@ class Release(models.Model):
     title = models.CharField(max_length=255)
     label = models.CharField(max_length=255, blank=True, default="")
     format = models.CharField(max_length=255, blank=True, default="")
+    country = models.CharField(max_length=100, blank=True, default="")
     personal_rating = models.PositiveSmallIntegerField(
         null=True, blank=True, validators=[MaxValueValidator(5)]
     )

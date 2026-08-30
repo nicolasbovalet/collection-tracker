@@ -15,6 +15,7 @@ class AddToWishlistApiTests(APITestCase):
                 "format": "Vinyl, LP",
                 "released_year": 1997,
                 "cover_art_url": "http://example.com/c.jpg",
+                "country": "UK",
             },
             format="json",
         )
@@ -23,6 +24,23 @@ class AddToWishlistApiTests(APITestCase):
         release = Release.objects.get(discogs_release_id=553236)
         self.assertEqual(release.status, Release.STATUS_WISHLIST)
         self.assertIsNone(release.folder)
+        self.assertEqual(release.country, "UK")
+
+
+    def test_country_defaults_to_blank_when_omitted(self):
+        response = self.client.post(
+            "/api/releases/wishlist/",
+            {
+                "discogs_release_id": 1,
+                "artist": "A",
+                "title": "B",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        release = Release.objects.get(discogs_release_id=1)
+        self.assertEqual(release.country, "")
 
 
 class AddToCollectionApiTests(APITestCase):
@@ -38,6 +56,7 @@ class AddToCollectionApiTests(APITestCase):
                 "format": "Vinyl, LP",
                 "released_year": 1997,
                 "cover_art_url": "http://example.com/c.jpg",
+                "country": "UK",
                 "folder": folder.id,
                 "media_condition": "Very Good Plus",
                 "sleeve_condition": "Near Mint",
@@ -51,6 +70,7 @@ class AddToCollectionApiTests(APITestCase):
         self.assertEqual(release.status, Release.STATUS_COLLECTION)
         self.assertEqual(release.folder, folder)
         self.assertEqual(release.media_condition, "Very Good Plus")
+        self.assertEqual(release.country, "UK")
 
     def test_requires_valid_folder(self):
         response = self.client.post(

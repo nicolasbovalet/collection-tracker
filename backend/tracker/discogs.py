@@ -46,6 +46,7 @@ class DiscogsClient:
                 "year": item.get("year"),
                 "thumb": item.get("thumb", ""),
                 "cover_image": item.get("cover_image", ""),
+                "country": item.get("country", ""),
             }
             for item in results
         ]
@@ -66,3 +67,10 @@ class DiscogsClient:
         if images:
             return images[0].get("uri", "")
         return ""
+
+    def get_release_details(self, release_id):
+        data = self.get_release(release_id)
+        images = data.get("images") or []
+        cover_art_url = images[0].get("uri", "") if images else ""
+        country = data.get("country", "") or ""
+        return {"cover_art_url": cover_art_url, "country": country}

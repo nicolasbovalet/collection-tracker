@@ -56,8 +56,11 @@ class CsvImportCommitApiTests(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @patch("tracker.views.DiscogsClient.get_cover_art_url", return_value="http://x/c.jpg")
-    def test_commits_releases_and_returns_summary(self, mock_cover_art):
+    @patch(
+        "tracker.views.DiscogsClient.get_release_details",
+        return_value={"cover_art_url": "http://x/c.jpg", "country": "US"},
+    )
+    def test_commits_releases_and_returns_summary(self, mock_release_details):
         response = self.client.post(
             "/api/import/discogs-csv/commit/",
             {"file": make_csv_upload(), "folder_mode": "per_folder"},
@@ -67,5 +70,5 @@ class CsvImportCommitApiTests(APITestCase):
         self.assertEqual(response.data["created"], 2)
         self.assertEqual(Release.objects.count(), 2)
         self.assertTrue(
-            Release.objects.filter(cover_art_url="http://x/c.jpg").exists()
+            Release.objects.filter(cover_art_url="http://x/c.jpg", country="US").exists()
         )

@@ -61,7 +61,7 @@ def _parse_year(raw_value):
 MAIN_FOLDER_NAME = "Main"
 
 
-def commit_import(rows, folder_mode, fetch_cover_art):
+def commit_import(rows, folder_mode, fetch_release_details):
     folders_created = []
     folder_cache = {folder.name: folder for folder in Folder.objects.all()}
 
@@ -96,9 +96,12 @@ def commit_import(rows, folder_mode, fetch_cover_art):
             folder = get_or_create_folder(folder_name)
 
         try:
-            cover_art_url = fetch_cover_art(discogs_release_id) or ""
+            details = fetch_release_details(discogs_release_id) or {}
+            cover_art_url = details.get("cover_art_url", "") or ""
+            country = details.get("country", "") or ""
         except Exception:
             cover_art_url = ""
+            country = ""
 
         Release.objects.create(
             discogs_release_id=discogs_release_id,
@@ -115,6 +118,7 @@ def commit_import(rows, folder_mode, fetch_cover_art):
             media_condition=map_condition(row.get("Collection Media Condition")),
             sleeve_condition=map_condition(row.get("Collection Sleeve Condition")),
             cover_art_url=cover_art_url,
+            country=country,
         )
         created += 1
 

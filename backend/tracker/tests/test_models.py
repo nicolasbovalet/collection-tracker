@@ -27,6 +27,18 @@ class ReleaseModelTests(TestCase):
         )
         self.assertIsNone(release.folder)
         self.assertIsNone(release.media_condition)
+        self.assertEqual(release.country, "")
+
+    def test_create_release_with_country(self):
+        release = Release.objects.create(
+            discogs_release_id=123456,
+            artist="Radiohead",
+            title="OK Computer",
+            status=Release.STATUS_WISHLIST,
+            date_added=timezone.now(),
+            country="UK",
+        )
+        self.assertEqual(release.country, "UK")
 
     def test_release_str(self):
         release = Release.objects.create(
