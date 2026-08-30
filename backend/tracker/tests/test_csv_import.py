@@ -91,3 +91,98 @@ class ParseHelperTests(TestCase):
     def test_parse_year_valid_and_invalid(self):
         self.assertEqual(_parse_year("1997"), 1997)
         self.assertIsNone(_parse_year(""))
+
+
+from tracker.csv_import import commit_import
+from tracker.models import Release
+
+
+def fake_cover_art(release_id):
+    return f"http://example.com/{release_id}.jpg"
+
+
+def failing_cover_art(release_id):
+    raise RuntimeError("Discogs is down")
+
+
+class CommitImportTests(TestCase):
+    def test_creates_releases_and_folders_per_folder_mode(self):
+        rows = [
+            {
+                "Catalog#": "ABC123", "Artist": "Radiohead", "Title": "OK Computer",
+                "Label": "Parlophone", "Format": "Vinyl, LP", "Rating": "5",
+                "Released": "1997", "release_id": "553236", "CollectionFolder": "Rock",
+                "Date Added": "2020-05-14 10:32:01",
+                "Collection Media Condition": "Very Good Plus (VG+)",
+                "Collection Sleeve Condition": "Near Mint (NM or M-)",
+            },
+            {
+                "Catalog#": "", "Artist": "Boards of Canada", "Title": "Music Has the Right to Children",
+                "Label": "Warp", "Format": "CD", "Rating": "", "Released": "1998",
+                "release_id": "12345", "CollectionFolder": "", "Date Added": "2021-01-01 00:00:00",
+                "Collection Media Condition": "", "Collection Sleeve Condition": "",
+            },
+        ]
+
+        summary = commit_import(rows, "per_folder", fake_cover_art)
+
+        self.assertEqual(summary["created"], 2)
+        self.assertEqual(summary["skipped_duplicates"], 0)
+        self.assertEqual(sorted(summary["folders_created"]), ["Main", "Rock"])
+
+        rock_release = Release.objects.get(discogs_release_id=553236)
+        self.assertEqual(rock_release.folder.name, "Rock")
+        self.assertEqual(rock_release.media_condition, "Very Good Plus")
+        self.assertEqual(rock_release.cover_art_url, "http://example.com/553236.jpg")
+
+        main_release = Release.objects.get(discogs_release_id=12345)
+        self.assertEqual(main_release.folder.name, "Main")
+
+    def test_main_only_mode_routes_everything_to_main(self):
+        rows = [
+            {
+                "Catalog#": "", "Artist": "A", "Title": "B", "Label": "", "Format": "",
+                "Rating": "", "Released": "", "release_id": "1", "CollectionFolder": "Rock",
+                "Date Added": "", "Collection Media Condition": "", "Collection Sleeve Condition": "",
+            },
+        ]
+
+        summary = commit_import(rows, "main_only", fake_cover_art)
+
+        self.assertEqual(summary["folders_created"], ["Main"])
+        self.assertEqual(Release.objects.get(discogs_release_id=1).folder.name, "Main")
+
+    def test_skips_existing_collection_duplicates(self):
+        folder = Folder.objects.create(name="Rock", source=Folder.SOURCE_USER_CREATED)
+        Release.objects.create(
+            discogs_release_id=1, artist="A", title="B", status=Release.STATUS_COLLECTION,
+            folder=folder, date_added=timezone.now(),
+        )
+        rows = [
+            {
+                "Catalog#": "", "Artist": "A", "Title": "B", "Label": "", "Format": "",
+                "Rating": "", "Released": "", "release_id": "1", "CollectionFolder": "Rock",
+                "Date Added": "", "Collection Media Condition": "", "Collection Sleeve Condition": "",
+            },
+        ]
+
+        summary = commit_import(rows, "per_folder", fake_cover_art)
+
+        self.assertEqual(summary["created"], 0)
+        self.assertEqual(summary["skipped_duplicates"], 1)
+        self.assertEqual(Release.objects.filter(discogs_release_id=1).count(), 1)
+
+    def test_cover_art_failure_leaves_row_created_without_url(self):
+        rows = [
+            {
+                "Catalog#": "", "Artist": "A", "Title": "B", "Label": "", "Format": "",
+                "Rating": "", "Released": "", "release_id": "1", "CollectionFolder": "Rock",
+                "Date Added": "", "Collection Media Condition": "", "Collection Sleeve Condition": "",
+            },
+        ]
+
+        summary = commit_import(rows, "per_folder", failing_cover_art)
+
+        self.assertEqual(summary["created"], 1)
+        release = Release.objects.get(discogs_release_id=1)
+        self.assertEqual(release.cover_art_url, "")

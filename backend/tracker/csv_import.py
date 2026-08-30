@@ -4,7 +4,7 @@ from datetime import datetime
 
 from django.utils import timezone
 
-from .models import Release
+from .models import Folder, Release
 
 
 def parse_csv_rows(file_obj):
@@ -56,3 +56,70 @@ def _parse_year(raw_value):
     if raw_value and raw_value.strip().isdigit():
         return int(raw_value.strip())
     return None
+
+
+MAIN_FOLDER_NAME = "Main"
+
+
+def commit_import(rows, folder_mode, fetch_cover_art):
+    folders_created = []
+    folder_cache = {folder.name: folder for folder in Folder.objects.all()}
+
+    def get_or_create_folder(name):
+        if name in folder_cache:
+            return folder_cache[name]
+        folder = Folder.objects.create(name=name, source=Folder.SOURCE_DISCOGS_IMPORT)
+        folder_cache[name] = folder
+        folders_created.append(name)
+        return folder
+
+    created = 0
+    skipped_duplicates = 0
+
+    for row in rows:
+        release_id_raw = (row.get("release_id") or "").strip()
+        if not release_id_raw.isdigit():
+            continue
+        discogs_release_id = int(release_id_raw)
+
+        already_exists = Release.objects.filter(
+            discogs_release_id=discogs_release_id, status=Release.STATUS_COLLECTION
+        ).exists()
+        if already_exists:
+            skipped_duplicates += 1
+            continue
+
+        if folder_mode == "main_only":
+            folder = get_or_create_folder(MAIN_FOLDER_NAME)
+        else:
+            folder_name = (row.get("CollectionFolder") or "").strip() or MAIN_FOLDER_NAME
+            folder = get_or_create_folder(folder_name)
+
+        try:
+            cover_art_url = fetch_cover_art(discogs_release_id) or ""
+        except Exception:
+            cover_art_url = ""
+
+        Release.objects.create(
+            discogs_release_id=discogs_release_id,
+            catalog_number=(row.get("Catalog#") or "").strip(),
+            artist=(row.get("Artist") or "").strip(),
+            title=(row.get("Title") or "").strip(),
+            label=(row.get("Label") or "").strip(),
+            format=(row.get("Format") or "").strip(),
+            personal_rating=_parse_rating(row.get("Rating")),
+            released_year=_parse_year(row.get("Released")),
+            status=Release.STATUS_COLLECTION,
+            folder=folder,
+            date_added=_parse_date_added(row.get("Date Added")),
+            media_condition=map_condition(row.get("Collection Media Condition")),
+            sleeve_condition=map_condition(row.get("Collection Sleeve Condition")),
+            cover_art_url=cover_art_url,
+        )
+        created += 1
+
+    return {
+        "created": created,
+        "skipped_duplicates": skipped_duplicates,
+        "folders_created": folders_created,
+    }
