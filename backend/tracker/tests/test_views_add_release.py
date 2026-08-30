@@ -82,3 +82,41 @@ class AddToCollectionApiTests(APITestCase):
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_accepts_genre_and_pricing_fields(self):
+        folder = Folder.objects.create(name="Jazz", source=Folder.SOURCE_USER_CREATED)
+
+        response = self.client.post(
+            "/api/releases/collection/",
+            {
+                "discogs_release_id": 1,
+                "artist": "A",
+                "title": "B",
+                "folder": folder.id,
+                "genre": "Jazz, Fusion",
+                "estimated_value": "12.50",
+                "num_for_sale": 4,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        release = Release.objects.get(discogs_release_id=1)
+        self.assertEqual(release.genre, "Jazz, Fusion")
+        self.assertEqual(str(release.estimated_value), "12.50")
+        self.assertEqual(release.num_for_sale, 4)
+
+    def test_genre_and_pricing_fields_are_optional(self):
+        folder = Folder.objects.create(name="Rock", source=Folder.SOURCE_USER_CREATED)
+
+        response = self.client.post(
+            "/api/releases/collection/",
+            {"discogs_release_id": 2, "artist": "A", "title": "B", "folder": folder.id},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        release = Release.objects.get(discogs_release_id=2)
+        self.assertEqual(release.genre, "")
+        self.assertIsNone(release.estimated_value)
+        self.assertIsNone(release.num_for_sale)
