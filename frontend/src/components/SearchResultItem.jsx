@@ -8,6 +8,7 @@ import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemText from "@mui/material/ListItemText";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 
 import { addToWishlist } from "../api/releases";
 import { parseArtistTitle } from "../utils/discogsFormat";
@@ -31,37 +32,55 @@ export default function SearchResultItem({ result, onAddToCollection, onWishlist
   return (
     <ListItem
       divider
-      sx={{
+      sx={(theme) => ({
         py: 1.5,
         px: { xs: 1.5, sm: 2 },
         gap: 1.5,
         flexWrap: { xs: "wrap", sm: "nowrap" },
-        transition: "background-color 150ms ease",
-        "&:hover": { bgcolor: "action.hover" },
-      }}
+        transition: theme.transitions.create("background-color", { duration: 150 }),
+        "@media (prefers-reduced-motion: reduce)": { transition: "none" },
+        "&:hover": { bgcolor: alpha(theme.palette.primary.main, 0.04) },
+      })}
     >
       <ListItemAvatar>
         <Avatar
           variant="rounded"
           src={result.thumb}
           alt={`${artist} - ${title} cover art`}
-          sx={{ width: 56, height: 56, bgcolor: "action.selected" }}
+          sx={(theme) => ({
+            width: 56,
+            height: 56,
+            bgcolor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.04)" : "rgba(15,23,42,0.03)",
+            color: theme.palette.text.secondary,
+          })}
         >
-          <AlbumIcon color="disabled" />
+          <AlbumIcon />
         </Avatar>
       </ListItemAvatar>
       <ListItemText
         sx={{ minWidth: 0 }}
         primary={
-          <Typography variant="subtitle2" noWrap title={`${artist} - ${title}`}>
-            {artist} <Typography component="span" color="text.secondary">— {title}</Typography>
+          <Typography variant="subtitle2" fontWeight={600} noWrap title={title}>
+            {title}
           </Typography>
         }
         secondary={
-          <Typography variant="caption" color="text.secondary">
-            {(result.format || []).join(", ") || "Unknown format"} · {result.year || "Unknown year"}
-          </Typography>
+          <>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              noWrap
+              title={artist}
+              sx={{ display: "block" }}
+            >
+              {artist}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
+              {(result.format || []).join(", ") || "Unknown format"} · {result.year || "Unknown year"}
+            </Typography>
+          </>
         }
+        secondaryTypographyProps={{ component: "div" }}
       />
       <Stack
         direction="row"
@@ -71,6 +90,7 @@ export default function SearchResultItem({ result, onAddToCollection, onWishlist
         <Button
           size="small"
           variant="outlined"
+          color="secondary"
           startIcon={<FavoriteBorderIcon fontSize="small" />}
           onClick={handleAddToWishlist}
         >
@@ -79,6 +99,7 @@ export default function SearchResultItem({ result, onAddToCollection, onWishlist
         <Button
           size="small"
           variant="contained"
+          color="primary"
           startIcon={<LibraryAddIcon fontSize="small" />}
           onClick={() => onAddToCollection(result)}
         >

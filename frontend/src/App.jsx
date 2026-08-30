@@ -67,7 +67,7 @@ export default function App() {
         <Typography variant="h5" sx={{ p: 2, fontWeight: 700 }}>
           Collection Tracker
         </Typography>
-        <Box sx={{ px: 2 }}>
+        <Box sx={{ px: 2, pt: 1, pb: 2 }}>
           <SearchBar onResults={handleResults} />
           {searchResults.length > 0 && (
             <SearchResultsList
@@ -115,6 +115,15 @@ export default function App() {
           autoHideDuration={3000}
           onClose={() => setWishlistedMessage("")}
           message={wishlistedMessage}
+          ContentProps={{
+            sx: (theme) => ({
+              bgcolor: "background.paper",
+              color: "text.primary",
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: 2,
+              boxShadow: theme.shadows[6],
+            }),
+          }}
         />
       </Box>
     </ThemeProvider>
