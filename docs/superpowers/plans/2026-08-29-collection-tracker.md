@@ -3335,3 +3335,151 @@ git commit -m "feat: dockerize backend and frontend for homelab deployment"
 ```
 
 ---
+
+## Task 25: Collection grid filter controls (format, artist, condition, rating, year)
+
+**Added post-final-review.** The spec's Collection View section requires the grid to be
+"filterable/sortable by folder, format, artist, condition, rating, year." Task 18 wired up
+folder-filtering and column sorting only; the backend (`GET /api/releases/`, Task 5) already
+supports `format`, `artist`, `condition`, `rating`, and `year` query params, but no task ever
+built UI for them. This task closes that gap.
+
+**Files:**
+- Create: `frontend/src/components/CollectionFilterBar.jsx`
+- Modify: `frontend/src/components/CollectionGrid.jsx`
+
+**Interfaces:**
+- Consumes: `getReleases(params)` (Task 18); `useDebouncedValue(value, delayMs)` (Task 19,
+  already used by `SearchBar`).
+- Produces: `CollectionFilterBar` props: `filters` (`{format, artist, condition, rating,
+  year}`, all strings, `""` meaning "no filter"), `onChange(nextFilters)`. `CollectionGrid`
+  gains local `filters` state alongside its existing `folderId`/`refreshKey` props (both
+  unchanged) and merges non-empty filter values into the params object it already builds,
+  debounced at 400ms via the existing `useDebouncedValue` hook — matching the debounce
+  convention already established for the Discogs search bar.
+
+**Do not touch:** `CollectionGrid`'s existing `columns` array, `useReactTable` wiring, table
+rendering (including the `TableContainer` wrapper and empty-state early return added during
+the Task 23 design pass), or its `folderId`/`refreshKey` props — this task only adds new
+filter state and a new params-merging step above what's already there.
+
+- [ ] **Step 1: Read the current file first**
+
+Read `frontend/src/components/CollectionGrid.jsx` in full before editing — it has already
+been modified twice (Task 18's initial build, Task 23's design pass) and this step must
+preserve everything already there.
+
+- [ ] **Step 2: Implement CollectionFilterBar**
+
+`frontend/src/components/CollectionFilterBar.jsx`:
+```jsx
+import MenuItem from "@mui/material/MenuItem";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+
+const CONDITIONS = [
+  "Mint", "Near Mint", "Very Good Plus", "Very Good",
+  "Good Plus", "Good", "Fair", "Poor",
+];
+
+export default function CollectionFilterBar({ filters, onChange }) {
+  const handleField = (field) => (event) => {
+    onChange({ ...filters, [field]: event.target.value });
+  };
+
+  return (
+    <Stack direction="row" spacing={2} sx={{ mb: 2, flexWrap: "wrap" }}>
+      <TextField
+        label="Format"
+        size="small"
+        value={filters.format}
+        onChange={handleField("format")}
+      />
+      <TextField
+        label="Artist"
+        size="small"
+        value={filters.artist}
+        onChange={handleField("artist")}
+      />
+      <TextField
+        select
+        label="Condition"
+        size="small"
+        sx={{ minWidth: 160 }}
+        value={filters.condition}
+        onChange={handleField("condition")}
+      >
+        <MenuItem value="">Any</MenuItem>
+        {CONDITIONS.map((condition) => (
+          <MenuItem key={condition} value={condition}>
+            {condition}
+          </MenuItem>
+        ))}
+      </TextField>
+      <TextField
+        select
+        label="Rating"
+        size="small"
+        sx={{ minWidth: 100 }}
+        value={filters.rating}
+        onChange={handleField("rating")}
+      >
+        <MenuItem value="">Any</MenuItem>
+        {[0, 1, 2, 3, 4, 5].map((rating) => (
+          <MenuItem key={rating} value={String(rating)}>
+            {rating}
+          </MenuItem>
+        ))}
+      </TextField>
+      <TextField
+        label="Year"
+        size="small"
+        sx={{ width: 100 }}
+        value={filters.year}
+        onChange={handleField("year")}
+      />
+    </Stack>
+  );
+}
+```
+
+- [ ] **Step 3: Wire it into CollectionGrid**
+
+In `frontend/src/components/CollectionGrid.jsx`:
+1. Add imports: `import { useState } from "react";` (merge into the existing React import
+   if one is already there), `import CollectionFilterBar from "./CollectionFilterBar";`,
+   `import useDebouncedValue from "../hooks/useDebouncedValue";`.
+2. Add state: `const [filters, setFilters] = useState({format: "", artist: "", condition: "", rating: "", year: ""});`
+   and `const debouncedFilters = useDebouncedValue(filters, 400);`.
+3. In the data-fetching `useEffect`, after the existing `if (folderId) params.folder = folderId;`
+   line, add:
+   ```js
+   if (debouncedFilters.format) params.format = debouncedFilters.format;
+   if (debouncedFilters.artist) params.artist = debouncedFilters.artist;
+   if (debouncedFilters.condition) params.condition = debouncedFilters.condition;
+   if (debouncedFilters.rating) params.rating = debouncedFilters.rating;
+   if (debouncedFilters.year) params.year = debouncedFilters.year;
+   ```
+   and add `debouncedFilters` to that effect's dependency array (alongside the existing
+   `folderId`, `refreshKey`).
+4. Render `<CollectionFilterBar filters={filters} onChange={setFilters} />` immediately
+   above the existing table/`TableContainer` markup — do not alter anything below it.
+
+- [ ] **Step 4: Verify manually**
+
+Run `npm run build` to confirm it compiles. With the backend running and a few collection
+releases seeded (different formats/artists/conditions/ratings/years), drive the app: typing
+in the Format or Artist field filters the grid after ~400ms of no typing; selecting a
+Condition or Rating filters immediately; typing a Year filters the grid; combining a folder
+selection with these filters narrows further; clearing a field (back to `""`) removes that
+filter. Confirm sorting and the existing empty-state/TableContainer behavior from Task 23
+still work unchanged.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/components/CollectionFilterBar.jsx frontend/src/components/CollectionGrid.jsx
+git commit -m "feat: add format/artist/condition/rating/year filters to collection grid"
+```
+
+---
