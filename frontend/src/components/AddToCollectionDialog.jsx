@@ -1,12 +1,17 @@
 import { useEffect, useState } from "react";
+import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import Divider from "@mui/material/Divider";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
 
 import { createFolder, getFolders } from "../api/folders";
 
@@ -24,6 +29,9 @@ export default function AddToCollectionDialog({ open, onClose, onSubmit }) {
   const [mediaCondition, setMediaCondition] = useState("");
   const [sleeveCondition, setSleeveCondition] = useState("");
   const [notes, setNotes] = useState("");
+
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     if (open) getFolders().then(setFolders);
@@ -54,65 +62,104 @@ export default function AddToCollectionDialog({ open, onClose, onSubmit }) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Add to Collection</DialogTitle>
-      <DialogContent>
-        <Stack spacing={2} sx={{ mt: 1 }}>
-          <TextField
-            select
-            label="Folder"
-            value={folderId}
-            onChange={(event) => setFolderId(event.target.value)}
-          >
-            {folders.map((folder) => (
-              <MenuItem key={folder.id} value={folder.id}>
-                {folder.name}
-              </MenuItem>
-            ))}
-            <MenuItem value={NEW_FOLDER_VALUE}>+ Create new folder</MenuItem>
-          </TextField>
-          {folderId === NEW_FOLDER_VALUE && (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      fullScreen={fullScreen}
+      PaperProps={{ sx: { borderRadius: fullScreen ? 0 : 3 } }}
+    >
+      <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1, pb: 1 }}>
+        <LibraryAddIcon color="primary" fontSize="small" />
+        Add to Collection
+      </DialogTitle>
+      <Divider />
+      <DialogContent sx={{ pt: 3 }}>
+        <Stack spacing={3}>
+          <Stack spacing={1.5}>
+            <Typography variant="overline" color="text.secondary">
+              Location
+            </Typography>
             <TextField
-              label="New folder name"
-              value={newFolderName}
-              onChange={(event) => setNewFolderName(event.target.value)}
+              select
+              label="Folder"
+              value={folderId}
+              onChange={(event) => setFolderId(event.target.value)}
+              fullWidth
+            >
+              {folders.map((folder) => (
+                <MenuItem key={folder.id} value={folder.id}>
+                  {folder.name}
+                </MenuItem>
+              ))}
+              <MenuItem value={NEW_FOLDER_VALUE}>+ Create new folder</MenuItem>
+            </TextField>
+            {folderId === NEW_FOLDER_VALUE && (
+              <TextField
+                label="New folder name"
+                value={newFolderName}
+                onChange={(event) => setNewFolderName(event.target.value)}
+                fullWidth
+                autoFocus
+              />
+            )}
+          </Stack>
+
+          <Stack spacing={1.5}>
+            <Typography variant="overline" color="text.secondary">
+              Condition
+            </Typography>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+              <TextField
+                select
+                label="Media Condition"
+                value={mediaCondition}
+                onChange={(event) => setMediaCondition(event.target.value)}
+                fullWidth
+              >
+                {CONDITIONS.map((condition) => (
+                  <MenuItem key={condition} value={condition}>
+                    {condition}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                select
+                label="Sleeve Condition"
+                value={sleeveCondition}
+                onChange={(event) => setSleeveCondition(event.target.value)}
+                fullWidth
+              >
+                {CONDITIONS.map((condition) => (
+                  <MenuItem key={condition} value={condition}>
+                    {condition}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
+          </Stack>
+
+          <Stack spacing={1.5}>
+            <Typography variant="overline" color="text.secondary">
+              Notes
+            </Typography>
+            <TextField
+              label="Notes"
+              multiline
+              minRows={3}
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+              fullWidth
             />
-          )}
-          <TextField
-            select
-            label="Media Condition"
-            value={mediaCondition}
-            onChange={(event) => setMediaCondition(event.target.value)}
-          >
-            {CONDITIONS.map((condition) => (
-              <MenuItem key={condition} value={condition}>
-                {condition}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            select
-            label="Sleeve Condition"
-            value={sleeveCondition}
-            onChange={(event) => setSleeveCondition(event.target.value)}
-          >
-            {CONDITIONS.map((condition) => (
-              <MenuItem key={condition} value={condition}>
-                {condition}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label="Notes"
-            multiline
-            minRows={3}
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-          />
+          </Stack>
         </Stack>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+      <Divider />
+      <DialogActions sx={{ px: 3, py: 2 }}>
+        <Button onClick={onClose} color="inherit">
+          Cancel
+        </Button>
         <Button
           variant="contained"
           onClick={handleSubmit}
