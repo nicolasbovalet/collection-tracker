@@ -1,8 +1,10 @@
+from unittest.mock import patch
+
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from tracker.models import Folder
+from tracker.models import Folder, Release
 
 SAMPLE_CSV = (
     "Catalog#,Artist,Title,Label,Format,Rating,Released,release_id,"
@@ -38,3 +40,32 @@ class CsvImportDryRunApiTests(APITestCase):
             "/api/import/discogs-csv/dry-run/", {"file": make_csv_upload()}
         )
         self.assertEqual(response.data["new_folders"], ["Jazz"])
+
+
+class CsvImportCommitApiTests(APITestCase):
+    def test_missing_file_returns_400(self):
+        response = self.client.post(
+            "/api/import/discogs-csv/commit/", {"folder_mode": "per_folder"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_invalid_folder_mode_returns_400(self):
+        response = self.client.post(
+            "/api/import/discogs-csv/commit/",
+            {"file": make_csv_upload(), "folder_mode": "bogus"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch("tracker.views.DiscogsClient.get_cover_art_url", return_value="http://x/c.jpg")
+    def test_commits_releases_and_returns_summary(self, mock_cover_art):
+        response = self.client.post(
+            "/api/import/discogs-csv/commit/",
+            {"file": make_csv_upload(), "folder_mode": "per_folder"},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["created"], 2)
+        self.assertEqual(Release.objects.count(), 2)
+        self.assertTrue(
+            Release.objects.filter(cover_art_url="http://x/c.jpg").exists()
+        )

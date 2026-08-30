@@ -12,4 +12,9 @@ urlpatterns = [
         views.CsvImportDryRunView.as_view(),
         name="csv-import-dry-run",
     ),
+    path(
+        "import/discogs-csv/commit/",
+        views.CsvImportCommitView.as_view(),
+        name="csv-import-commit",
+    ),
 ]
