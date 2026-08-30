@@ -99,9 +99,15 @@ def commit_import(rows, folder_mode, fetch_release_details):
             details = fetch_release_details(discogs_release_id) or {}
             cover_art_url = details.get("cover_art_url", "") or ""
             country = details.get("country", "") or ""
+            genre = details.get("genre", "") or ""
+            estimated_value = details.get("estimated_value")
+            num_for_sale = details.get("num_for_sale")
         except Exception:
             cover_art_url = ""
             country = ""
+            genre = ""
+            estimated_value = None
+            num_for_sale = None
 
         Release.objects.create(
             discogs_release_id=discogs_release_id,
@@ -119,6 +125,9 @@ def commit_import(rows, folder_mode, fetch_release_details):
             sleeve_condition=map_condition(row.get("Collection Sleeve Condition")),
             cover_art_url=cover_art_url,
             country=country,
+            genre=genre,
+            estimated_value=estimated_value,
+            num_for_sale=num_for_sale,
         )
         created += 1
 

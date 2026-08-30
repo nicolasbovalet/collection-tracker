@@ -1,4 +1,5 @@
 import io
+from decimal import Decimal
 
 from django.test import TestCase
 from django.utils import timezone
@@ -101,6 +102,9 @@ def fake_release_details(release_id):
     return {
         "cover_art_url": f"http://example.com/{release_id}.jpg",
         "country": "US",
+        "genre": "Rock, Electronic",
+        "estimated_value": Decimal("19.99"),
+        "num_for_sale": 3,
     }
 
 
@@ -138,6 +142,9 @@ class CommitImportTests(TestCase):
         self.assertEqual(rock_release.media_condition, "Very Good Plus")
         self.assertEqual(rock_release.cover_art_url, "http://example.com/553236.jpg")
         self.assertEqual(rock_release.country, "US")
+        self.assertEqual(rock_release.genre, "Rock, Electronic")
+        self.assertEqual(rock_release.estimated_value, Decimal("19.99"))
+        self.assertEqual(rock_release.num_for_sale, 3)
 
         main_release = Release.objects.get(discogs_release_id=12345)
         self.assertEqual(main_release.folder.name, "Main")
@@ -177,7 +184,7 @@ class CommitImportTests(TestCase):
         self.assertEqual(summary["skipped_duplicates"], 1)
         self.assertEqual(Release.objects.filter(discogs_release_id=1).count(), 1)
 
-    def test_release_details_failure_leaves_row_created_without_url_or_country(self):
+    def test_release_details_failure_leaves_row_created_with_blank_metadata(self):
         rows = [
             {
                 "Catalog#": "", "Artist": "A", "Title": "B", "Label": "", "Format": "",
@@ -192,3 +199,6 @@ class CommitImportTests(TestCase):
         release = Release.objects.get(discogs_release_id=1)
         self.assertEqual(release.cover_art_url, "")
         self.assertEqual(release.country, "")
+        self.assertEqual(release.genre, "")
+        self.assertIsNone(release.estimated_value)
+        self.assertIsNone(release.num_for_sale)
