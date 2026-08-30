@@ -1,16 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import TableRowsIcon from "@mui/icons-material/TableRows";
-import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
-import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
@@ -27,6 +18,7 @@ import { getReleases } from "../api/releases";
 import useDebouncedValue from "../hooks/useDebouncedValue";
 import CollectionCoverGrid from "./CollectionCoverGrid";
 import CollectionFilterBar from "./CollectionFilterBar";
+import CollectionSortMenu from "./CollectionSortMenu";
 
 const columns = [
   { accessorKey: "artist", header: "Artist" },
@@ -40,7 +32,7 @@ const columns = [
 
 export default function CollectionGrid({ folderId, refreshKey }) {
   const [releases, setReleases] = useState([]);
-  const [sorting, setSorting] = useState([]);
+  const [sort, setSort] = useState({ field: "artist", direction: "asc" });
   const [viewMode, setViewMode] = useState("table");
   const [filters, setFilters] = useState({
     format: "",
@@ -59,16 +51,14 @@ export default function CollectionGrid({ folderId, refreshKey }) {
     if (debouncedFilters.condition) params.condition = debouncedFilters.condition;
     if (debouncedFilters.rating) params.rating = debouncedFilters.rating;
     if (debouncedFilters.year) params.year = debouncedFilters.year;
+    params.ordering = sort.direction === "desc" ? `-${sort.field}` : sort.field;
     getReleases(params).then(setReleases);
-  }, [folderId, refreshKey, debouncedFilters]);
+  }, [folderId, refreshKey, debouncedFilters, sort]);
 
   const table = useReactTable({
     data: releases,
     columns: useMemo(() => columns, []),
-    state: { sorting },
-    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
   });
 
   return (
@@ -81,21 +71,24 @@ export default function CollectionGrid({ folderId, refreshKey }) {
         sx={{ mb: 2, flexWrap: "wrap" }}
       >
         <CollectionFilterBar filters={filters} onChange={setFilters} />
-        <ToggleButtonGroup
-          value={viewMode}
-          exclusive
-          size="small"
-          onChange={(_, value) => {
-            if (value) setViewMode(value);
-          }}
-        >
-          <ToggleButton value="table" aria-label="Table view">
-            <TableRowsIcon fontSize="small" />
-          </ToggleButton>
-          <ToggleButton value="cover" aria-label="Cover art grid view">
-            <ViewModuleIcon fontSize="small" />
-          </ToggleButton>
-        </ToggleButtonGroup>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <CollectionSortMenu sort={sort} onChange={setSort} />
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            size="small"
+            onChange={(_, value) => {
+              if (value) setViewMode(value);
+            }}
+          >
+            <ToggleButton value="table" aria-label="Table view">
+              <TableRowsIcon fontSize="small" />
+            </ToggleButton>
+            <ToggleButton value="cover" aria-label="Cover art grid view">
+              <ViewModuleIcon fontSize="small" />
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Stack>
       </Stack>
       {viewMode === "cover" ? (
         <CollectionCoverGrid releases={releases} />
@@ -117,37 +110,18 @@ export default function CollectionGrid({ folderId, refreshKey }) {
             <TableHead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    const sortDirection = header.column.getIsSorted();
-                    return (
-                      <TableCell
-                        key={header.id}
-                        onClick={header.column.getToggleSortingHandler()}
-                        sx={{
-                          cursor: "pointer",
-                          fontWeight: 600,
-                          whiteSpace: "nowrap",
-                          bgcolor: "action.hover",
-                          userSelect: "none",
-                        }}
-                      >
-                        <Stack direction="row" alignItems="center" spacing={0.5}>
-                          <span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
-                          <Box
-                            component="span"
-                            sx={{
-                              display: "inline-flex",
-                              color: sortDirection ? "text.primary" : "action.disabled",
-                            }}
-                          >
-                            {sortDirection === "asc" && <ArrowUpwardIcon sx={{ fontSize: 16 }} />}
-                            {sortDirection === "desc" && <ArrowDownwardIcon sx={{ fontSize: 16 }} />}
-                            {!sortDirection && <UnfoldMoreIcon sx={{ fontSize: 16 }} />}
-                          </Box>
-                        </Stack>
-                      </TableCell>
-                    );
-                  })}
+                  {headerGroup.headers.map((header) => (
+                    <TableCell
+                      key={header.id}
+                      sx={{
+                        fontWeight: 600,
+                        whiteSpace: "nowrap",
+                        bgcolor: "action.hover",
+                      }}
+                    >
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableCell>
+                  ))}
                 </TableRow>
               ))}
             </TableHead>
