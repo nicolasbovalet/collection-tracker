@@ -16,6 +16,7 @@ import Typography from "@mui/material/Typography";
 
 import { getReleases } from "../api/releases";
 import useDebouncedValue from "../hooks/useDebouncedValue";
+import { groupReleasesBySort } from "../utils/groupReleases";
 import CollectionCoverGrid from "./CollectionCoverGrid";
 import CollectionFilterBar from "./CollectionFilterBar";
 import CollectionSortMenu from "./CollectionSortMenu";
@@ -61,6 +62,30 @@ export default function CollectionGrid({ folderId, refreshKey }) {
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const sections = useMemo(
+    () => groupReleasesBySort(releases, sort.field),
+    [releases, sort.field]
+  );
+
+  // Walk the table's row model (whose order matches `releases`/`sort`
+  // exactly) and slice out the contiguous chunk of rows belonging to each
+  // section, interleaving section header rows in between.
+  const tableRows = table.getRowModel().rows;
+  const groupedTableRows = [];
+  {
+    let cursor = 0;
+    for (const section of sections) {
+      if (section.label) {
+        groupedTableRows.push({ type: "header", key: `header-${cursor}`, label: section.label });
+      }
+      const chunk = tableRows.slice(cursor, cursor + section.items.length);
+      chunk.forEach((row, offset) => {
+        groupedTableRows.push({ type: "row", key: row.id, row, index: cursor + offset });
+      });
+      cursor += section.items.length;
+    }
+  }
+
   return (
     <>
       <Stack
@@ -91,7 +116,7 @@ export default function CollectionGrid({ folderId, refreshKey }) {
         </Stack>
       </Stack>
       {viewMode === "cover" ? (
-        <CollectionCoverGrid releases={releases} />
+        <CollectionCoverGrid sections={sections} />
       ) : releases.length === 0 ? (
         <Paper
           variant="outlined"
@@ -126,22 +151,38 @@ export default function CollectionGrid({ folderId, refreshKey }) {
               ))}
             </TableHead>
             <TableBody>
-              {table.getRowModel().rows.map((row, index) => (
-                <TableRow
-                  key={row.id}
-                  hover
-                  sx={{
-                    bgcolor: index % 2 === 1 ? "action.hover" : "transparent",
-                    "&:last-child td": { borderBottom: 0 },
-                  }}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} sx={{ whiteSpace: "nowrap" }}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              {groupedTableRows.map((item) =>
+                item.type === "header" ? (
+                  <TableRow key={item.key}>
+                    <TableCell
+                      colSpan={columns.length}
+                      sx={{
+                        fontWeight: 700,
+                        bgcolor: "action.selected",
+                        borderBottom: 1,
+                        borderColor: "divider",
+                      }}
+                    >
+                      {item.label}
                     </TableCell>
-                  ))}
-                </TableRow>
-              ))}
+                  </TableRow>
+                ) : (
+                  <TableRow
+                    key={item.key}
+                    hover
+                    sx={{
+                      bgcolor: item.index % 2 === 1 ? "action.hover" : "transparent",
+                      "&:last-child td": { borderBottom: 0 },
+                    }}
+                  >
+                    {item.row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} sx={{ whiteSpace: "nowrap" }}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                )
+              )}
             </TableBody>
           </Table>
         </TableContainer>
