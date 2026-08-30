@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework import status as drf_status
 from rest_framework.views import APIView
+from django.db.models import Case, When, CharField
+from django.db.models.functions import Lower, Substr
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 
@@ -66,7 +68,25 @@ class ReleaseListView(generics.ListAPIView):
 
         ordering = params.get("ordering")
         if ordering:
-            queryset = queryset.order_by(ordering)
+            descending = ordering.startswith("-")
+            field = ordering[1:] if descending else ordering
+
+            if field == "artist":
+                queryset = queryset.annotate(
+                    sort_key=Lower(
+                        Case(
+                            When(artist__istartswith="The ", then=Substr("artist", 5)),
+                            default="artist",
+                            output_field=CharField(),
+                        )
+                    )
+                )
+                queryset = queryset.order_by("-sort_key" if descending else "sort_key")
+            elif field == "title":
+                queryset = queryset.annotate(sort_key=Lower("title"))
+                queryset = queryset.order_by("-sort_key" if descending else "sort_key")
+            else:
+                queryset = queryset.order_by(ordering)
 
         return queryset
 
