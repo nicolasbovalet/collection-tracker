@@ -2,6 +2,7 @@ import { useState } from "react";
 import Box from "@mui/material/Box";
 
 import FolderSidebar from "./FolderSidebar";
+import CollectionGrid from "./CollectionGrid";
 
 export default function CollectionTab() {
   const [selectedFolderId, setSelectedFolderId] = useState(null);
@@ -14,7 +15,9 @@ export default function CollectionTab() {
           onSelectFolder={setSelectedFolderId}
         />
       </Box>
-      <Box sx={{ flexGrow: 1 }}>Grid coming soon.</Box>
+      <Box sx={{ flexGrow: 1 }}>
+        <CollectionGrid folderId={selectedFolderId} />
+      </Box>
     </Box>
   );
 }
