@@ -29,4 +29,5 @@ urlpatterns = [
         views.ExportCsvView.as_view(),
         name="export-discogs-csv",
     ),
+    path("stats/", views.StatsView.as_view(), name="stats"),
 ]

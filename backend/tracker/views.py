@@ -1,9 +1,11 @@
+from decimal import Decimal
+
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework import status as drf_status
 from rest_framework.views import APIView
-from django.db.models import Case, When, CharField
+from django.db.models import Case, When, CharField, Sum
 from django.db.models.functions import Lower, Substr
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -174,3 +176,58 @@ class ExportCsvView(APIView):
         response = HttpResponse(csv_text, content_type="text/csv")
         response["Content-Disposition"] = 'attachment; filename="collection-export.csv"'
         return response
+
+
+class StatsView(APIView):
+    def get(self, request):
+        collection_qs = Release.objects.filter(status=Release.STATUS_COLLECTION)
+
+        collection_count = collection_qs.count()
+        wishlist_count = Release.objects.filter(status=Release.STATUS_WISHLIST).count()
+
+        total_value = collection_qs.aggregate(total=Sum("estimated_value"))["total"]
+
+        format_distribution = {}
+        for format_value in collection_qs.exclude(format="").values_list("format", flat=True):
+            bucket = format_value.split(",")[0].strip() or "Unknown"
+            format_distribution[bucket] = format_distribution.get(bucket, 0) + 1
+
+        condition_distribution = {}
+        for condition_value in collection_qs.values_list("media_condition", flat=True):
+            bucket = condition_value or "Not graded"
+            condition_distribution[bucket] = condition_distribution.get(bucket, 0) + 1
+
+        genre_distribution = {}
+        for genre_value in collection_qs.values_list("genre", flat=True):
+            if not genre_value:
+                genre_distribution["Unknown"] = genre_distribution.get("Unknown", 0) + 1
+                continue
+            for genre in genre_value.split(","):
+                genre = genre.strip()
+                if genre:
+                    genre_distribution[genre] = genre_distribution.get(genre, 0) + 1
+
+        cumulative_series = []
+        running_total = Decimal("0")
+        valued_releases = collection_qs.exclude(estimated_value=None).order_by("date_added")
+        for release in valued_releases:
+            running_total += release.estimated_value
+            cumulative_series.append({
+                "date_added": release.date_added.date().isoformat(),
+                "cumulative_value": str(running_total),
+            })
+
+        recent_additions = ReleaseSerializer(
+            collection_qs.order_by("-date_added")[:8], many=True
+        ).data
+
+        return Response({
+            "collection_count": collection_count,
+            "wishlist_count": wishlist_count,
+            "total_estimated_value": str(total_value) if total_value is not None else None,
+            "format_distribution": format_distribution,
+            "condition_distribution": condition_distribution,
+            "genre_distribution": genre_distribution,
+            "cumulative_value_by_date_added": cumulative_series,
+            "recent_additions": recent_additions,
+        })
