@@ -20,6 +20,8 @@ import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 
 import { getReleases } from "../api/releases";
+import useDebouncedValue from "../hooks/useDebouncedValue";
+import CollectionFilterBar from "./CollectionFilterBar";
 
 const columns = [
   { accessorKey: "artist", header: "Artist" },
@@ -34,12 +36,25 @@ const columns = [
 export default function CollectionGrid({ folderId, refreshKey }) {
   const [releases, setReleases] = useState([]);
   const [sorting, setSorting] = useState([]);
+  const [filters, setFilters] = useState({
+    format: "",
+    artist: "",
+    condition: "",
+    rating: "",
+    year: "",
+  });
+  const debouncedFilters = useDebouncedValue(filters, 400);
 
   useEffect(() => {
     const params = { status: "collection" };
     if (folderId) params.folder = folderId;
+    if (debouncedFilters.format) params.format = debouncedFilters.format;
+    if (debouncedFilters.artist) params.artist = debouncedFilters.artist;
+    if (debouncedFilters.condition) params.condition = debouncedFilters.condition;
+    if (debouncedFilters.rating) params.rating = debouncedFilters.rating;
+    if (debouncedFilters.year) params.year = debouncedFilters.year;
     getReleases(params).then(setReleases);
-  }, [folderId, refreshKey]);
+  }, [folderId, refreshKey, debouncedFilters]);
 
   const table = useReactTable({
     data: releases,
@@ -67,64 +82,67 @@ export default function CollectionGrid({ folderId, refreshKey }) {
   }
 
   return (
-    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
-      <Table size="small" sx={{ minWidth: 640 }}>
-        <TableHead>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                const sortDirection = header.column.getIsSorted();
-                return (
-                  <TableCell
-                    key={header.id}
-                    onClick={header.column.getToggleSortingHandler()}
-                    sx={{
-                      cursor: "pointer",
-                      fontWeight: 600,
-                      whiteSpace: "nowrap",
-                      bgcolor: "action.hover",
-                      userSelect: "none",
-                    }}
-                  >
-                    <Stack direction="row" alignItems="center" spacing={0.5}>
-                      <span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
-                      <Box
-                        component="span"
-                        sx={{
-                          display: "inline-flex",
-                          color: sortDirection ? "text.primary" : "action.disabled",
-                        }}
-                      >
-                        {sortDirection === "asc" && <ArrowUpwardIcon sx={{ fontSize: 16 }} />}
-                        {sortDirection === "desc" && <ArrowDownwardIcon sx={{ fontSize: 16 }} />}
-                        {!sortDirection && <UnfoldMoreIcon sx={{ fontSize: 16 }} />}
-                      </Box>
-                    </Stack>
+    <>
+      <CollectionFilterBar filters={filters} onChange={setFilters} />
+      <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
+        <Table size="small" sx={{ minWidth: 640 }}>
+          <TableHead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  const sortDirection = header.column.getIsSorted();
+                  return (
+                    <TableCell
+                      key={header.id}
+                      onClick={header.column.getToggleSortingHandler()}
+                      sx={{
+                        cursor: "pointer",
+                        fontWeight: 600,
+                        whiteSpace: "nowrap",
+                        bgcolor: "action.hover",
+                        userSelect: "none",
+                      }}
+                    >
+                      <Stack direction="row" alignItems="center" spacing={0.5}>
+                        <span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
+                        <Box
+                          component="span"
+                          sx={{
+                            display: "inline-flex",
+                            color: sortDirection ? "text.primary" : "action.disabled",
+                          }}
+                        >
+                          {sortDirection === "asc" && <ArrowUpwardIcon sx={{ fontSize: 16 }} />}
+                          {sortDirection === "desc" && <ArrowDownwardIcon sx={{ fontSize: 16 }} />}
+                          {!sortDirection && <UnfoldMoreIcon sx={{ fontSize: 16 }} />}
+                        </Box>
+                      </Stack>
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHead>
+          <TableBody>
+            {table.getRowModel().rows.map((row, index) => (
+              <TableRow
+                key={row.id}
+                hover
+                sx={{
+                  bgcolor: index % 2 === 1 ? "action.hover" : "transparent",
+                  "&:last-child td": { borderBottom: 0 },
+                }}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id} sx={{ whiteSpace: "nowrap" }}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableHead>
-        <TableBody>
-          {table.getRowModel().rows.map((row, index) => (
-            <TableRow
-              key={row.id}
-              hover
-              sx={{
-                bgcolor: index % 2 === 1 ? "action.hover" : "transparent",
-                "&:last-child td": { borderBottom: 0 },
-              }}
-            >
-              {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id} sx={{ whiteSpace: "nowrap" }}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
   );
 }
