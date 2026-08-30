@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework import status as drf_status
 from rest_framework.views import APIView
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 
 from .models import Folder, Release
@@ -10,6 +11,7 @@ from .serializers import FolderSerializer, ReleaseSerializer, AddToWishlistSeria
 from .serializers import MoveToCollectionSerializer
 from .discogs import DiscogsClient
 from .csv_import import extract_new_folder_names, parse_csv_rows, commit_import
+from .csv_export import build_export_rows, render_csv
 
 
 @api_view(["GET"])
@@ -142,3 +144,13 @@ class MoveToCollectionView(APIView):
         release.status = Release.STATUS_COLLECTION
         release.save()
         return Response(ReleaseSerializer(release).data)
+
+
+class ExportCsvView(APIView):
+    def get(self, request):
+        queryset = Release.objects.filter(status=Release.STATUS_COLLECTION).select_related("folder")
+        rows = build_export_rows(queryset)
+        csv_text = render_csv(rows)
+        response = HttpResponse(csv_text, content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="collection-export.csv"'
+        return response

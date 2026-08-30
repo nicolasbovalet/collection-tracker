@@ -24,4 +24,9 @@ urlpatterns = [
         views.MoveToCollectionView.as_view(),
         name="release-move-to-collection",
     ),
+    path(
+        "export/discogs-csv/",
+        views.ExportCsvView.as_view(),
+        name="export-discogs-csv",
+    ),
 ]

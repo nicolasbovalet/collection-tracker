@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
+import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
@@ -66,6 +67,15 @@ export default function CsvImportPanel() {
         newFolders={newFolders || []}
         onChoose={runCommit}
       />
+      <Divider sx={{ my: 1 }} />
+      <Typography variant="subtitle1">Export</Typography>
+      <Button
+        variant="outlined"
+        component="a"
+        href="/api/export/discogs-csv/"
+      >
+        Export Collection to CSV
+      </Button>
     </Stack>
   );
 }

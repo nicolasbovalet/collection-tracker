@@ -7,7 +7,9 @@ import {
 } from "@tanstack/react-table";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import TableRowsIcon from "@mui/icons-material/TableRows";
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
+import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
@@ -17,10 +19,13 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
 
 import { getReleases } from "../api/releases";
 import useDebouncedValue from "../hooks/useDebouncedValue";
+import CollectionCoverGrid from "./CollectionCoverGrid";
 import CollectionFilterBar from "./CollectionFilterBar";
 
 const columns = [
@@ -36,6 +41,7 @@ const columns = [
 export default function CollectionGrid({ folderId, refreshKey }) {
   const [releases, setReleases] = useState([]);
   const [sorting, setSorting] = useState([]);
+  const [viewMode, setViewMode] = useState("table");
   const [filters, setFilters] = useState({
     format: "",
     artist: "",
@@ -67,8 +73,33 @@ export default function CollectionGrid({ folderId, refreshKey }) {
 
   return (
     <>
-      <CollectionFilterBar filters={filters} onChange={setFilters} />
-      {releases.length === 0 ? (
+      <Stack
+        direction="row"
+        alignItems="flex-start"
+        justifyContent="space-between"
+        spacing={2}
+        sx={{ mb: 2, flexWrap: "wrap" }}
+      >
+        <CollectionFilterBar filters={filters} onChange={setFilters} />
+        <ToggleButtonGroup
+          value={viewMode}
+          exclusive
+          size="small"
+          onChange={(_, value) => {
+            if (value) setViewMode(value);
+          }}
+        >
+          <ToggleButton value="table" aria-label="Table view">
+            <TableRowsIcon fontSize="small" />
+          </ToggleButton>
+          <ToggleButton value="cover" aria-label="Cover art grid view">
+            <ViewModuleIcon fontSize="small" />
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Stack>
+      {viewMode === "cover" ? (
+        <CollectionCoverGrid releases={releases} />
+      ) : releases.length === 0 ? (
         <Paper
           variant="outlined"
           sx={{
