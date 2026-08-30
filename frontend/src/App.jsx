@@ -7,6 +7,7 @@ import Typography from "@mui/material/Typography";
 
 import AddToCollectionDialog from "./components/AddToCollectionDialog";
 import CollectionTab from "./components/CollectionTab";
+import CsvImportPanel from "./components/CsvImportPanel";
 import SearchBar from "./components/SearchBar";
 import SearchResultsList from "./components/SearchResultsList";
 import WishlistTab from "./components/WishlistTab";
@@ -68,7 +69,7 @@ export default function App() {
       <Box sx={{ p: 2 }}>
         {tab === "collection" && <CollectionTab refreshKey={collectionRefreshKey} />}
         {tab === "wishlist" && <WishlistTab />}
-        {tab === "import" && <Typography>Import view coming soon.</Typography>}
+        {tab === "import" && <CsvImportPanel />}
       </Box>
       <AddToCollectionDialog
         open={Boolean(addToCollectionTarget)}
