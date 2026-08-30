@@ -4,6 +4,8 @@ import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 
+import CollectionTab from "./components/CollectionTab";
+
 export default function App() {
   const [tab, setTab] = useState("collection");
 
@@ -18,7 +20,7 @@ export default function App() {
         <Tab label="Import" value="import" />
       </Tabs>
       <Box sx={{ p: 2 }}>
-        {tab === "collection" && <Typography>Collection view coming soon.</Typography>}
+        {tab === "collection" && <CollectionTab />}
         {tab === "wishlist" && <Typography>Wishlist view coming soon.</Typography>}
         {tab === "import" && <Typography>Import view coming soon.</Typography>}
       </Box>
