@@ -1,9 +1,12 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import generics
+from rest_framework import status as drf_status
+from rest_framework.views import APIView
 
 from .models import Folder, Release
 from .serializers import FolderSerializer, ReleaseSerializer
+from .discogs import DiscogsClient
 
 
 @api_view(["GET"])
@@ -61,3 +64,16 @@ class ReleaseListView(generics.ListAPIView):
             queryset = queryset.order_by(ordering)
 
         return queryset
+
+
+class DiscogsSearchView(APIView):
+    def get(self, request):
+        query = request.query_params.get("q", "").strip()
+        if not query:
+            return Response(
+                {"detail": "Query parameter 'q' is required."},
+                status=drf_status.HTTP_400_BAD_REQUEST,
+            )
+        client = DiscogsClient()
+        results = client.search(query)
+        return Response({"results": results})
