@@ -9,6 +9,7 @@ import AddToCollectionDialog from "./components/AddToCollectionDialog";
 import CollectionTab from "./components/CollectionTab";
 import SearchBar from "./components/SearchBar";
 import SearchResultsList from "./components/SearchResultsList";
+import WishlistTab from "./components/WishlistTab";
 import { addToCollection } from "./api/releases";
 import { parseArtistTitle } from "./utils/discogsFormat";
 
@@ -66,7 +67,7 @@ export default function App() {
       </Tabs>
       <Box sx={{ p: 2 }}>
         {tab === "collection" && <CollectionTab refreshKey={collectionRefreshKey} />}
-        {tab === "wishlist" && <Typography>Wishlist view coming soon.</Typography>}
+        {tab === "wishlist" && <WishlistTab />}
         {tab === "import" && <Typography>Import view coming soon.</Typography>}
       </Box>
       <AddToCollectionDialog
