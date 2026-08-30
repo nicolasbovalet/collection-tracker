@@ -16,21 +16,31 @@ export default function CsvImportPanel() {
   const runCommit = async (folderMode) => {
     setNewFolders(null);
     setLoading(true);
-    const result = await commitImport(file, folderMode);
-    setLoading(false);
-    setSummary(result);
+    try {
+      const result = await commitImport(file, folderMode);
+      setSummary(result);
+    } catch (error) {
+      // Leave summary unset; loading is always reset in finally below.
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleImportClick = async () => {
     if (!file) return;
     setLoading(true);
     setSummary(null);
-    const result = await dryRunImport(file);
-    setLoading(false);
-    if (result.new_folders.length > 0) {
-      setNewFolders(result.new_folders);
-    } else {
-      await runCommit("per_folder");
+    try {
+      const result = await dryRunImport(file);
+      if (result.new_folders.length > 0) {
+        setNewFolders(result.new_folders);
+      } else {
+        await runCommit("per_folder");
+      }
+    } catch (error) {
+      // Leave summary unset; loading is always reset in finally below.
+    } finally {
+      setLoading(false);
     }
   };
 

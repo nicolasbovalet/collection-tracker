@@ -1,10 +1,11 @@
 services:
   backend:
     build: ./backend
+    restart: unless-stopped
     environment:
-      - DISCOGS_TOKEN=${DISCOGS_TOKEN}
-      - DISCOGS_USER_AGENT=${DISCOGS_USER_AGENT}
-      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DISCOGS_TOKEN=${DISCOGS_TOKEN:-}
+      - DISCOGS_USER_AGENT=${DISCOGS_USER_AGENT:-CollectionTracker/1.0}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-dev-insecure-secret-key-change-in-prod}
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-*}
       - DJANGO_DEBUG=false
       - DJANGO_DB_PATH=/data/db.sqlite3
@@ -15,6 +16,7 @@ services:
 
   frontend:
     build: ./frontend
+    restart: unless-stopped
     depends_on:
       - backend
     ports:

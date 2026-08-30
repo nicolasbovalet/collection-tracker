@@ -30,6 +30,7 @@ export default function CollectionTab({ refreshKey }) {
         <FolderSidebar
           selectedFolderId={selectedFolderId}
           onSelectFolder={setSelectedFolderId}
+          refreshKey={refreshKey}
         />
       </Paper>
       <Box sx={{ flexGrow: 1, minWidth: 0 }}>

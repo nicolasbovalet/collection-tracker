@@ -29,6 +29,7 @@ export default function AddToCollectionDialog({ open, onClose, onSubmit }) {
   const [mediaCondition, setMediaCondition] = useState("");
   const [sleeveCondition, setSleeveCondition] = useState("");
   const [notes, setNotes] = useState("");
+  const [newFolderError, setNewFolderError] = useState("");
 
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -44,14 +45,21 @@ export default function AddToCollectionDialog({ open, onClose, onSubmit }) {
       setMediaCondition("");
       setSleeveCondition("");
       setNotes("");
+      setNewFolderError("");
     }
   }, [open]);
 
   const handleSubmit = async () => {
     let resolvedFolderId = folderId;
     if (folderId === NEW_FOLDER_VALUE) {
-      const created = await createFolder(newFolderName.trim());
-      resolvedFolderId = created.id;
+      setNewFolderError("");
+      try {
+        const created = await createFolder(newFolderName.trim());
+        resolvedFolderId = created.id;
+      } catch (error) {
+        setNewFolderError("A folder with this name already exists. Choose a different name or select it from the list above.");
+        return;
+      }
     }
     onSubmit({
       folder: resolvedFolderId,
@@ -85,7 +93,10 @@ export default function AddToCollectionDialog({ open, onClose, onSubmit }) {
               select
               label="Folder"
               value={folderId}
-              onChange={(event) => setFolderId(event.target.value)}
+              onChange={(event) => {
+                setFolderId(event.target.value);
+                setNewFolderError("");
+              }}
               fullWidth
             >
               {folders.map((folder) => (
@@ -99,7 +110,12 @@ export default function AddToCollectionDialog({ open, onClose, onSubmit }) {
               <TextField
                 label="New folder name"
                 value={newFolderName}
-                onChange={(event) => setNewFolderName(event.target.value)}
+                onChange={(event) => {
+                  setNewFolderName(event.target.value);
+                  setNewFolderError("");
+                }}
+                error={Boolean(newFolderError)}
+                helperText={newFolderError || " "}
                 fullWidth
                 autoFocus
               />

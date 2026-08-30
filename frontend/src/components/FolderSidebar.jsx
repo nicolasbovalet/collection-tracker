@@ -10,12 +10,12 @@ import Typography from "@mui/material/Typography";
 
 import { getFolders } from "../api/folders";
 
-export default function FolderSidebar({ selectedFolderId, onSelectFolder }) {
+export default function FolderSidebar({ selectedFolderId, onSelectFolder, refreshKey }) {
   const [folders, setFolders] = useState([]);
 
   useEffect(() => {
     getFolders().then(setFolders);
-  }, []);
+  }, [refreshKey]);
 
   const itemSx = {
     borderRadius: 1.5,
