@@ -44,3 +44,47 @@ class DiscogsClientSearchTests(TestCase):
         self.assertEqual(
             mock_get.call_args.kwargs["params"], {"q": "OK Computer", "type": "release"}
         )
+
+
+@override_settings(DISCOGS_TOKEN="test-token", DISCOGS_USER_AGENT="TestAgent/1.0")
+class DiscogsClientReleaseTests(TestCase):
+    def setUp(self):
+        discogs._last_call_time[0] = 0.0
+        patcher = patch("tracker.discogs.time.sleep")
+        self.addCleanup(patcher.stop)
+        patcher.start()
+
+    @patch("tracker.discogs.requests.get")
+    def test_get_release_returns_raw_json(self, mock_get):
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"id": 1, "images": [{"uri": "http://x/a.jpg"}]}
+        mock_response.raise_for_status.return_value = None
+        mock_get.return_value = mock_response
+
+        client = discogs.DiscogsClient()
+        data = client.get_release(1)
+
+        self.assertEqual(data["id"], 1)
+        self.assertIn(
+            "https://api.discogs.com/releases/1", mock_get.call_args.args[0]
+        )
+
+    @patch("tracker.discogs.requests.get")
+    def test_get_cover_art_url_returns_first_image(self, mock_get):
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"images": [{"uri": "http://x/a.jpg"}]}
+        mock_response.raise_for_status.return_value = None
+        mock_get.return_value = mock_response
+
+        client = discogs.DiscogsClient()
+        self.assertEqual(client.get_cover_art_url(1), "http://x/a.jpg")
+
+    @patch("tracker.discogs.requests.get")
+    def test_get_cover_art_url_returns_empty_string_when_no_images(self, mock_get):
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"images": []}
+        mock_response.raise_for_status.return_value = None
+        mock_get.return_value = mock_response
+
+        client = discogs.DiscogsClient()
+        self.assertEqual(client.get_cover_art_url(1), "")

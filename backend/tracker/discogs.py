@@ -49,3 +49,20 @@ class DiscogsClient:
             }
             for item in results
         ]
+
+    def get_release(self, release_id):
+        _throttle()
+        response = requests.get(
+            RELEASE_URL.format(release_id=release_id),
+            headers=self._headers(),
+            timeout=10,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def get_cover_art_url(self, release_id):
+        data = self.get_release(release_id)
+        images = data.get("images") or []
+        if images:
+            return images[0].get("uri", "")
+        return ""
