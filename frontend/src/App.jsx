@@ -40,6 +40,7 @@ export default function App() {
       released_year: addToCollectionTarget.year || null,
       cover_art_url:
         addToCollectionTarget.cover_image || addToCollectionTarget.thumb || "",
+      country: addToCollectionTarget.country || "",
       ...dialogPayload,
     });
     setAddToCollectionTarget(null);
