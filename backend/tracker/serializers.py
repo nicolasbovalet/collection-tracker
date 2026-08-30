@@ -60,3 +60,14 @@ class AddToCollectionSerializer(serializers.Serializer):
             date_added=timezone.now(),
             **validated_data,
         )
+
+
+class MoveToCollectionSerializer(serializers.Serializer):
+    folder = serializers.PrimaryKeyRelatedField(queryset=Folder.objects.all())
+    media_condition = serializers.ChoiceField(
+        choices=Release.CONDITION_CHOICES, required=False, allow_null=True
+    )
+    sleeve_condition = serializers.ChoiceField(
+        choices=Release.CONDITION_CHOICES, required=False, allow_null=True
+    )
+    notes = serializers.CharField(allow_blank=True, default="")

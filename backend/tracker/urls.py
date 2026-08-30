@@ -19,4 +19,9 @@ urlpatterns = [
     ),
     path("releases/wishlist/", views.AddToWishlistView.as_view(), name="release-add-wishlist"),
     path("releases/collection/", views.AddToCollectionView.as_view(), name="release-add-collection"),
+    path(
+        "releases/<int:pk>/move-to-collection/",
+        views.MoveToCollectionView.as_view(),
+        name="release-move-to-collection",
+    ),
 ]

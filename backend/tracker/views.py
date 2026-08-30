@@ -3,9 +3,11 @@ from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework import status as drf_status
 from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
 
 from .models import Folder, Release
 from .serializers import FolderSerializer, ReleaseSerializer, AddToWishlistSerializer, AddToCollectionSerializer
+from .serializers import MoveToCollectionSerializer
 from .discogs import DiscogsClient
 from .csv_import import extract_new_folder_names, parse_csv_rows, commit_import
 
@@ -128,3 +130,15 @@ class AddToCollectionView(APIView):
         serializer.is_valid(raise_exception=True)
         release = serializer.save()
         return Response(ReleaseSerializer(release).data, status=drf_status.HTTP_201_CREATED)
+
+
+class MoveToCollectionView(APIView):
+    def post(self, request, pk):
+        release = get_object_or_404(Release, pk=pk, status=Release.STATUS_WISHLIST)
+        serializer = MoveToCollectionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        for field, value in serializer.validated_data.items():
+            setattr(release, field, value)
+        release.status = Release.STATUS_COLLECTION
+        release.save()
+        return Response(ReleaseSerializer(release).data)
