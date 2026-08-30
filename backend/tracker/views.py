@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from .models import Folder, Release
 from .serializers import FolderSerializer, ReleaseSerializer
 from .discogs import DiscogsClient
+from .csv_import import extract_new_folder_names, parse_csv_rows
 
 
 @api_view(["GET"])
@@ -77,3 +78,17 @@ class DiscogsSearchView(APIView):
         client = DiscogsClient()
         results = client.search(query)
         return Response({"results": results})
+
+
+class CsvImportDryRunView(APIView):
+    def post(self, request):
+        uploaded_file = request.FILES.get("file")
+        if not uploaded_file:
+            return Response(
+                {"detail": "A CSV file is required."},
+                status=drf_status.HTTP_400_BAD_REQUEST,
+            )
+        rows = parse_csv_rows(uploaded_file)
+        existing_names = Folder.objects.values_list("name", flat=True)
+        new_folders = extract_new_folder_names(rows, existing_names)
+        return Response({"new_folders": new_folders})
