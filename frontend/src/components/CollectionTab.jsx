@@ -21,7 +21,7 @@ export default function CollectionTab({ refreshKey }) {
         sx={{
           width: { xs: "100%", md: 240 },
           flexShrink: 0,
-          borderRadius: 2,
+          borderRadius: 1,
           py: 1,
           maxHeight: { md: "70vh" },
           overflowY: { md: "auto" },

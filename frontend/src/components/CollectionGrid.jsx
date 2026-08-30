@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import TableRowsIcon from "@mui/icons-material/TableRows";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
+import { alpha } from "@mui/material/styles";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
@@ -34,7 +35,7 @@ const columns = [
 export default function CollectionGrid({ folderId, refreshKey }) {
   const [releases, setReleases] = useState([]);
   const [sort, setSort] = useState({ field: "artist", direction: "asc" });
-  const [viewMode, setViewMode] = useState("table");
+  const [viewMode, setViewMode] = useState("cover");
   const [filters, setFilters] = useState({
     format: "",
     artist: "",
@@ -105,6 +106,19 @@ export default function CollectionGrid({ folderId, refreshKey }) {
             onChange={(_, value) => {
               if (value) setViewMode(value);
             }}
+            sx={(theme) => ({
+              "& .MuiToggleButton-root": {
+                borderColor: theme.palette.divider,
+                color: theme.palette.text.secondary,
+              },
+              "& .Mui-selected": {
+                bgcolor: alpha(theme.palette.primary.main, 0.12),
+                color: theme.palette.primary.main,
+                "&:hover": {
+                  bgcolor: alpha(theme.palette.primary.main, 0.18),
+                },
+              },
+            })}
           >
             <ToggleButton value="table" aria-label="Table view">
               <TableRowsIcon fontSize="small" />
@@ -121,7 +135,7 @@ export default function CollectionGrid({ folderId, refreshKey }) {
         <Paper
           variant="outlined"
           sx={{
-            borderRadius: 2,
+            borderRadius: 1,
             py: 6,
             textAlign: "center",
             color: "text.secondary",
@@ -130,7 +144,7 @@ export default function CollectionGrid({ folderId, refreshKey }) {
           <Typography variant="body2">No releases match the current filters.</Typography>
         </Paper>
       ) : (
-        <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
+        <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 1 }}>
           <Table size="small" sx={{ minWidth: 640 }}>
             <TableHead>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -138,11 +152,13 @@ export default function CollectionGrid({ folderId, refreshKey }) {
                   {headerGroup.headers.map((header) => (
                     <TableCell
                       key={header.id}
-                      sx={{
+                      sx={(theme) => ({
                         fontWeight: 600,
                         whiteSpace: "nowrap",
-                        bgcolor: "action.hover",
-                      }}
+                        bgcolor: theme.palette.background.paper,
+                        borderBottom: `1px solid ${theme.palette.divider}`,
+                        color: theme.palette.text.secondary,
+                      })}
                     >
                       {flexRender(header.column.columnDef.header, header.getContext())}
                     </TableCell>
@@ -156,12 +172,14 @@ export default function CollectionGrid({ folderId, refreshKey }) {
                   <TableRow key={item.key}>
                     <TableCell
                       colSpan={columns.length}
-                      sx={{
+                      sx={(theme) => ({
                         fontWeight: 700,
-                        bgcolor: "action.selected",
-                        borderBottom: 1,
-                        borderColor: "divider",
-                      }}
+                        bgcolor:
+                          theme.palette.mode === "dark"
+                            ? "rgba(255,255,255,0.04)"
+                            : "rgba(15,23,42,0.03)",
+                        borderBottom: `1px solid ${theme.palette.divider}`,
+                      })}
                     >
                       {item.label}
                     </TableCell>
@@ -169,11 +187,21 @@ export default function CollectionGrid({ folderId, refreshKey }) {
                 ) : (
                   <TableRow
                     key={item.key}
-                    hover
-                    sx={{
-                      bgcolor: item.index % 2 === 1 ? "action.hover" : "transparent",
+                    sx={(theme) => ({
+                      bgcolor:
+                        item.index % 2 === 1
+                          ? theme.palette.mode === "dark"
+                            ? "rgba(255,255,255,0.02)"
+                            : "rgba(15,23,42,0.015)"
+                          : "transparent",
                       "&:last-child td": { borderBottom: 0 },
-                    }}
+                      "&:hover": {
+                        bgcolor: alpha(
+                          theme.palette.primary.main,
+                          theme.palette.mode === "dark" ? 0.08 : 0.06
+                        ),
+                      },
+                    })}
                   >
                     {item.row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id} sx={{ whiteSpace: "nowrap" }}>

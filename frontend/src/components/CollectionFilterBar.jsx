@@ -13,7 +13,7 @@ export default function CollectionFilterBar({ filters, onChange }) {
   };
 
   return (
-    <Stack direction="row" spacing={2} sx={{ mb: 2, flexWrap: "wrap" }}>
+    <Stack direction="row" spacing={1.5} sx={{ mb: 2, flexWrap: "wrap" }}>
       <TextField
         label="Format"
         size="small"

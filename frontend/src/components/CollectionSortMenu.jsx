@@ -10,6 +10,7 @@ import ListItemText from "@mui/material/ListItemText";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
+import { alpha } from "@mui/material/styles";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 
@@ -40,9 +41,11 @@ export default function CollectionSortMenu({ sort, onChange }) {
     <>
       <Button
         variant="outlined"
+        color="inherit"
         size="small"
         startIcon={<SortIcon fontSize="small" />}
         onClick={handleOpen}
+        sx={{ color: "text.secondary", borderColor: "divider" }}
       >
         Sort
       </Button>
@@ -54,6 +57,15 @@ export default function CollectionSortMenu({ sort, onChange }) {
             size="small"
             fullWidth
             onChange={handleDirectionChange}
+            sx={(theme) => ({
+              "& .Mui-selected": {
+                bgcolor: alpha(theme.palette.primary.main, 0.12),
+                color: theme.palette.primary.main,
+                "&:hover": {
+                  bgcolor: alpha(theme.palette.primary.main, 0.18),
+                },
+              },
+            })}
           >
             <ToggleButton value="asc" aria-label="Sort ascending">
               <ArrowUpwardIcon fontSize="small" sx={{ mr: 0.5 }} />
@@ -71,9 +83,19 @@ export default function CollectionSortMenu({ sort, onChange }) {
             key={option.value}
             selected={sort.field === option.value}
             onClick={() => handleFieldSelect(option.value)}
+            sx={(theme) => ({
+              "&.Mui-selected": {
+                bgcolor: alpha(theme.palette.primary.main, 0.12),
+                "&:hover": {
+                  bgcolor: alpha(theme.palette.primary.main, 0.18),
+                },
+              },
+            })}
           >
             <ListItemIcon>
-              {sort.field === option.value && <CheckIcon fontSize="small" />}
+              {sort.field === option.value && (
+                <CheckIcon fontSize="small" sx={{ color: "primary.main" }} />
+              )}
             </ListItemIcon>
             <ListItemText>{option.label}</ListItemText>
           </MenuItem>

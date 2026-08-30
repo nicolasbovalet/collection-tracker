@@ -13,7 +13,7 @@ export default function CollectionCoverGrid({ sections }) {
 
   if (totalCount === 0) {
     return (
-      <Paper variant="outlined" sx={{ borderRadius: 2, py: 6, textAlign: "center", color: "text.secondary" }}>
+      <Paper variant="outlined" sx={{ borderRadius: 1, py: 6, textAlign: "center", color: "text.secondary" }}>
         <Typography variant="body2">No releases match the current filters.</Typography>
       </Paper>
     );
@@ -25,11 +25,12 @@ export default function CollectionCoverGrid({ sections }) {
         <Box key={`section-${sectionIndex}`} sx={{ mb: 3 }}>
           {section.label && (
             <Typography
-              variant="subtitle2"
+              variant="overline"
               sx={{
-                fontWeight: 700,
+                display: "block",
                 mb: 1.5,
-                pb: 0.5,
+                pb: 0.75,
+                color: "text.secondary",
                 borderBottom: 1,
                 borderColor: "divider",
               }}
@@ -39,11 +40,50 @@ export default function CollectionCoverGrid({ sections }) {
           )}
           <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 2 }}>
             {section.items.map((release) => (
-              <Card key={release.id} variant="outlined" sx={{ borderRadius: 2 }}>
+              <Card
+                key={release.id}
+                variant="outlined"
+                sx={(theme) => ({
+                  borderRadius: `${theme.shape.borderRadius}px`,
+                  overflow: "hidden",
+                  transition: theme.transitions.create(
+                    ["transform", "box-shadow"],
+                    { duration: 200 }
+                  ),
+                  "@media (prefers-reduced-motion: reduce)": {
+                    transition: "none",
+                  },
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: theme.shadows[4],
+                    "@media (prefers-reduced-motion: reduce)": {
+                      transform: "none",
+                    },
+                  },
+                })}
+              >
                 {release.cover_art_url ? (
-                  <CardMedia component="img" image={release.cover_art_url} alt={`${release.artist} - ${release.title}`} sx={{ aspectRatio: "1 / 1", objectFit: "cover" }} />
+                  <CardMedia
+                    component="img"
+                    image={release.cover_art_url}
+                    alt={`${release.artist} - ${release.title}`}
+                    sx={{ aspectRatio: "1 / 1", objectFit: "cover" }}
+                  />
                 ) : (
-                  <Box sx={{ aspectRatio: "1 / 1", display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "action.hover", color: "action.disabled", borderBottom: 1, borderColor: "divider" }}>
+                  <Box
+                    sx={(theme) => ({
+                      aspectRatio: "1 / 1",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      bgcolor:
+                        theme.palette.mode === "dark"
+                          ? "rgba(255,255,255,0.03)"
+                          : "rgba(15,23,42,0.02)",
+                      color: theme.palette.text.secondary,
+                      borderBottom: `1px solid ${theme.palette.divider}`,
+                    })}
+                  >
                     <AlbumIcon sx={{ fontSize: 48 }} />
                   </Box>
                 )}
