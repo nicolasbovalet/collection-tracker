@@ -1,4 +1,5 @@
 import time
+from decimal import Decimal
 
 import requests
 from django.conf import settings
@@ -47,6 +48,7 @@ class DiscogsClient:
                 "thumb": item.get("thumb", ""),
                 "cover_image": item.get("cover_image", ""),
                 "country": item.get("country", ""),
+                "genre": item.get("genre", []),
             }
             for item in results
         ]
@@ -73,4 +75,14 @@ class DiscogsClient:
         images = data.get("images") or []
         cover_art_url = images[0].get("uri", "") if images else ""
         country = data.get("country", "") or ""
-        return {"cover_art_url": cover_art_url, "country": country}
+        genre = ", ".join(data.get("genres") or [])
+        lowest_price = data.get("lowest_price")
+        estimated_value = Decimal(str(lowest_price)) if lowest_price is not None else None
+        num_for_sale = data.get("num_for_sale")
+        return {
+            "cover_art_url": cover_art_url,
+            "country": country,
+            "genre": genre,
+            "estimated_value": estimated_value,
+            "num_for_sale": num_for_sale,
+        }

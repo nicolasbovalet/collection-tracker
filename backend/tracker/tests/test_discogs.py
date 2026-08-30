@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 from django.test import TestCase, override_settings
@@ -70,6 +71,47 @@ class DiscogsClientSearchTests(TestCase):
 
         self.assertEqual(results[0]["country"], "")
 
+    @patch("tracker.discogs.requests.get")
+    def test_search_includes_genre_list(self, mock_get):
+        mock_response = MagicMock()
+        mock_response.json.return_value = {
+            "results": [
+                {
+                    "id": 1,
+                    "title": "Some Release",
+                    "format": ["Vinyl"],
+                    "year": "2000",
+                    "thumb": "",
+                    "cover_image": "",
+                    "country": "US",
+                    "genre": ["Rock", "Pop"],
+                }
+            ]
+        }
+        mock_response.raise_for_status.return_value = None
+        mock_get.return_value = mock_response
+
+        client = discogs.DiscogsClient()
+        results = client.search("Some Release")
+
+        self.assertEqual(results[0]["genre"], ["Rock", "Pop"])
+
+    @patch("tracker.discogs.requests.get")
+    def test_search_defaults_genre_to_empty_list_when_missing(self, mock_get):
+        mock_response = MagicMock()
+        mock_response.json.return_value = {
+            "results": [
+                {"id": 1, "title": "Some Release", "format": [], "year": "2000", "thumb": "", "cover_image": ""}
+            ]
+        }
+        mock_response.raise_for_status.return_value = None
+        mock_get.return_value = mock_response
+
+        client = discogs.DiscogsClient()
+        results = client.search("Some Release")
+
+        self.assertEqual(results[0]["genre"], [])
+
 
 @override_settings(DISCOGS_TOKEN="test-token", DISCOGS_USER_AGENT="TestAgent/1.0")
 class DiscogsClientReleaseTests(TestCase):
@@ -128,7 +170,14 @@ class DiscogsClientReleaseTests(TestCase):
         details = client.get_release_details(1)
 
         self.assertEqual(
-            details, {"cover_art_url": "http://x/a.jpg", "country": "US"}
+            details,
+            {
+                "cover_art_url": "http://x/a.jpg",
+                "country": "US",
+                "genre": "",
+                "estimated_value": None,
+                "num_for_sale": None,
+            }
         )
 
     @patch("tracker.discogs.requests.get")
@@ -153,4 +202,47 @@ class DiscogsClientReleaseTests(TestCase):
         client = discogs.DiscogsClient()
         details = client.get_release_details(1)
 
-        self.assertEqual(details, {"cover_art_url": "", "country": "UK"})
+        self.assertEqual(
+            details,
+            {
+                "cover_art_url": "",
+                "country": "UK",
+                "genre": "",
+                "estimated_value": None,
+                "num_for_sale": None,
+            }
+        )
+
+    @patch("tracker.discogs.requests.get")
+    def test_get_release_details_includes_genre_value_and_num_for_sale(self, mock_get):
+        mock_response = MagicMock()
+        mock_response.json.return_value = {
+            "images": [{"uri": "http://x/a.jpg"}],
+            "country": "US",
+            "genres": ["Rock", "Electronic"],
+            "lowest_price": 24.99,
+            "num_for_sale": 7,
+        }
+        mock_response.raise_for_status.return_value = None
+        mock_get.return_value = mock_response
+
+        client = discogs.DiscogsClient()
+        details = client.get_release_details(1)
+
+        self.assertEqual(details["genre"], "Rock, Electronic")
+        self.assertEqual(details["estimated_value"], Decimal("24.99"))
+        self.assertEqual(details["num_for_sale"], 7)
+
+    @patch("tracker.discogs.requests.get")
+    def test_get_release_details_defaults_missing_metadata_to_blank_or_none(self, mock_get):
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"images": [], "country": ""}
+        mock_response.raise_for_status.return_value = None
+        mock_get.return_value = mock_response
+
+        client = discogs.DiscogsClient()
+        details = client.get_release_details(1)
+
+        self.assertEqual(details["genre"], "")
+        self.assertIsNone(details["estimated_value"])
+        self.assertIsNone(details["num_for_sale"])
