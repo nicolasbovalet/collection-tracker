@@ -8,6 +8,7 @@ import CollectionTab from "./components/CollectionTab";
 import MobileBottomNav from "./components/MobileBottomNav";
 import Sidebar from "./components/Sidebar";
 import WishlistTab from "./components/WishlistTab";
+import SearchPage from "./pages/SearchPage";
 import { createAppTheme } from "./theme";
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
         <Box component="main" sx={{ flexGrow: 1, minWidth: 0, p: 2, pb: { xs: 9, md: 2 } }}>
           {activePage === "collection" && <CollectionTab refreshKey={0} />}
           {activePage === "wishlist" && <WishlistTab />}
+          {activePage === "search" && <SearchPage />}
         </Box>
         <MobileBottomNav activePage={activePage} onSelectPage={setActivePage} />
       </Box>
