@@ -25,6 +25,7 @@ export default function SearchResultItem({ result, onAddToCollection, onWishlist
       released_year: result.year || null,
       cover_art_url: result.cover_image || result.thumb || "",
       country: result.country || "",
+      genre: (result.genre || []).join(", "),
     });
     onWishlisted(result.id);
   };

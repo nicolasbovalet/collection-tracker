@@ -35,11 +35,27 @@ export default function StatsPage() {
   const genreData = distributionToChartData(stats.genre_distribution);
   const cumulativeSeries = stats.cumulative_value_by_date_added;
 
+  const totalValueLabel =
+    stats.total_estimated_value !== null
+      ? `$${Number(stats.total_estimated_value).toFixed(2)}`
+      : "—";
+
   return (
     <Box>
       <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
         Stats
       </Typography>
+
+      <Stack direction="row" spacing={2} sx={{ mb: 3, flexWrap: "wrap" }}>
+        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, flex: 1, minWidth: 160 }}>
+          <Typography variant="body2" color="text.secondary">
+            Estimated Value
+          </Typography>
+          <Typography variant="h4" fontWeight={700}>
+            {totalValueLabel}
+          </Typography>
+        </Paper>
+      </Stack>
 
       <Stack direction="row" spacing={2} sx={{ mb: 3, flexWrap: "wrap" }}>
         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, flex: 1, minWidth: 220 }}>
@@ -80,7 +96,12 @@ export default function StatsPage() {
         </Typography>
         <LineChart
           xAxis={[{ scaleType: "point", data: cumulativeSeries.map((point) => point.date_added) }]}
-          series={[{ data: cumulativeSeries.map((point) => Number(point.cumulative_value)) }]}
+          series={[
+            {
+              data: cumulativeSeries.map((point) => Number(point.cumulative_value)),
+              valueFormatter: (value) => (value == null ? "" : `$${value.toFixed(2)}`),
+            },
+          ]}
           height={220}
         />
       </Paper>

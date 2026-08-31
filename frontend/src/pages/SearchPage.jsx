@@ -31,6 +31,7 @@ export default function SearchPage() {
       cover_art_url:
         addToCollectionTarget.cover_image || addToCollectionTarget.thumb || "",
       country: addToCollectionTarget.country || "",
+      genre: (addToCollectionTarget.genre || []).join(", "),
       ...dialogPayload,
     });
     setAddToCollectionTarget(null);
