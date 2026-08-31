@@ -109,6 +109,11 @@ export default function CollectionCoverGrid({ sections }) {
                       </Box>
                     </Stack>
                   )}
+                  {release.estimated_value !== null && release.estimated_value !== undefined && (
+                    <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.25 }}>
+                      ${Number(release.estimated_value).toFixed(2)}
+                    </Typography>
+                  )}
                 </CardContent>
               </Card>
             ))}

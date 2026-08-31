@@ -30,6 +30,14 @@ const columns = [
   { accessorKey: "sleeve_condition", header: "Sleeve" },
   { accessorKey: "personal_rating", header: "Rating" },
   { accessorKey: "released_year", header: "Year" },
+  {
+    accessorKey: "estimated_value",
+    header: "Value",
+    cell: (info) => {
+      const value = info.getValue();
+      return value !== null && value !== undefined ? `$${Number(value).toFixed(2)}` : "—";
+    },
+  },
 ];
 
 export default function CollectionGrid({ folderId, refreshKey }) {
