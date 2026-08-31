@@ -10,6 +10,7 @@ import Sidebar from "./components/Sidebar";
 import WishlistTab from "./components/WishlistTab";
 import DashboardPage from "./pages/DashboardPage";
 import SearchPage from "./pages/SearchPage";
+import StatsPage from "./pages/StatsPage";
 import { createAppTheme } from "./theme";
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
           {activePage === "collection" && <CollectionTab refreshKey={0} />}
           {activePage === "wishlist" && <WishlistTab />}
           {activePage === "search" && <SearchPage />}
+          {activePage === "stats" && <StatsPage />}
         </Box>
         <MobileBottomNav activePage={activePage} onSelectPage={setActivePage} />
       </Box>
