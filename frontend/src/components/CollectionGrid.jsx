@@ -1,19 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import TableRowsIcon from "@mui/icons-material/TableRows";
-import ViewModuleIcon from "@mui/icons-material/ViewModule";
-import { alpha } from "@mui/material/styles";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import Typography from "@mui/material/Typography";
+import { LayoutGrid, TableIcon } from "lucide-react";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 import { getReleases } from "../api/releases";
 import useDebouncedValue from "../hooks/useDebouncedValue";
@@ -97,122 +94,57 @@ export default function CollectionGrid({ folderId, refreshKey }) {
 
   return (
     <>
-      <Stack
-        direction="row"
-        alignItems="flex-start"
-        justifyContent="space-between"
-        spacing={2}
-        sx={{ mb: 2, flexWrap: "wrap" }}
-      >
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
         <CollectionFilterBar filters={filters} onChange={setFilters} />
-        <Stack direction="row" spacing={1} alignItems="center">
+        <div className="flex items-center gap-2">
           <CollectionSortMenu sort={sort} onChange={setSort} />
-          <ToggleButtonGroup
+          <ToggleGroup
+            type="single"
             value={viewMode}
-            exclusive
-            size="small"
-            onChange={(_, value) => {
-              if (value) setViewMode(value);
-            }}
-            sx={(theme) => ({
-              "& .MuiToggleButton-root": {
-                borderColor: theme.palette.divider,
-                color: theme.palette.text.secondary,
-              },
-              "& .Mui-selected": {
-                bgcolor: alpha(theme.palette.primary.main, 0.12),
-                color: theme.palette.primary.main,
-                "&:hover": {
-                  bgcolor: alpha(theme.palette.primary.main, 0.18),
-                },
-              },
-            })}
+            onValueChange={(value) => value && setViewMode(value)}
+            variant="outline"
           >
-            <ToggleButton value="table" aria-label="Table view">
-              <TableRowsIcon fontSize="small" />
-            </ToggleButton>
-            <ToggleButton value="cover" aria-label="Cover art grid view">
-              <ViewModuleIcon fontSize="small" />
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </Stack>
-      </Stack>
+            <ToggleGroupItem value="table" aria-label="Table view">
+              <TableIcon className="size-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="cover" aria-label="Cover art grid view">
+              <LayoutGrid className="size-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+      </div>
       {viewMode === "cover" ? (
         <CollectionCoverGrid sections={sections} />
       ) : releases.length === 0 ? (
-        <Paper
-          variant="outlined"
-          sx={{
-            borderRadius: 1,
-            py: 6,
-            textAlign: "center",
-            color: "text.secondary",
-          }}
-        >
-          <Typography variant="body2">No releases match the current filters.</Typography>
-        </Paper>
+        <div className="rounded-lg border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+          No releases match the current filters.
+        </div>
       ) : (
-        <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 1 }}>
-          <Table size="small" sx={{ minWidth: 640 }}>
-            <TableHead>
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <Table className="min-w-[640px]">
+            <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
+                <TableRow key={headerGroup.id} className="hover:bg-transparent">
                   {headerGroup.headers.map((header) => (
-                    <TableCell
-                      key={header.id}
-                      sx={(theme) => ({
-                        fontWeight: 600,
-                        whiteSpace: "nowrap",
-                        bgcolor: theme.palette.background.paper,
-                        borderBottom: `1px solid ${theme.palette.divider}`,
-                        color: theme.palette.text.secondary,
-                      })}
-                    >
+                    <TableHead key={header.id} className="whitespace-nowrap">
                       {flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableCell>
+                    </TableHead>
                   ))}
                 </TableRow>
               ))}
-            </TableHead>
+            </TableHeader>
             <TableBody>
               {groupedTableRows.map((item) =>
                 item.type === "header" ? (
-                  <TableRow key={item.key}>
-                    <TableCell
-                      colSpan={columns.length}
-                      sx={(theme) => ({
-                        fontWeight: 700,
-                        bgcolor:
-                          theme.palette.mode === "dark"
-                            ? "rgba(255,255,255,0.04)"
-                            : "rgba(15,23,42,0.03)",
-                        borderBottom: `1px solid ${theme.palette.divider}`,
-                      })}
-                    >
+                  <TableRow key={item.key} className="hover:bg-transparent">
+                    <TableCell colSpan={columns.length} className="bg-muted/50 font-semibold">
                       {item.label}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  <TableRow
-                    key={item.key}
-                    sx={(theme) => ({
-                      bgcolor:
-                        item.index % 2 === 1
-                          ? theme.palette.mode === "dark"
-                            ? "rgba(255,255,255,0.02)"
-                            : "rgba(15,23,42,0.015)"
-                          : "transparent",
-                      "&:last-child td": { borderBottom: 0 },
-                      "&:hover": {
-                        bgcolor: alpha(
-                          theme.palette.primary.main,
-                          theme.palette.mode === "dark" ? 0.08 : 0.06
-                        ),
-                      },
-                    })}
-                  >
+                  <TableRow key={item.key}>
                     {item.row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} sx={{ whiteSpace: "nowrap" }}>
+                      <TableCell key={cell.id} className="whitespace-nowrap">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
@@ -221,7 +153,7 @@ export default function CollectionGrid({ folderId, refreshKey }) {
               )}
             </TableBody>
           </Table>
-        </TableContainer>
+        </div>
       )}
     </>
   );

@@ -1,124 +1,75 @@
-import AlbumIcon from "@mui/icons-material/Album";
-import MusicNoteIcon from "@mui/icons-material/MusicNote";
-import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import CardMedia from "@mui/material/CardMedia";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
+import { Disc3, Music2 } from "lucide-react";
+
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function CollectionCoverGrid({ sections }) {
   const totalCount = sections.reduce((sum, section) => sum + section.items.length, 0);
 
   if (totalCount === 0) {
     return (
-      <Paper variant="outlined" sx={{ borderRadius: 1, py: 6, textAlign: "center", color: "text.secondary" }}>
-        <Typography variant="body2">No releases match the current filters.</Typography>
-      </Paper>
+      <div className="rounded-lg border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+        No releases match the current filters.
+      </div>
     );
   }
 
   return (
     <>
       {sections.map((section, sectionIndex) => (
-        <Box key={`section-${sectionIndex}`} sx={{ mb: 3 }}>
+        <div key={`section-${sectionIndex}`} className="mb-6">
           {section.label && (
-            <Typography
-              variant="overline"
-              sx={{
-                display: "block",
-                mb: 1.5,
-                pb: 0.75,
-                color: "text.secondary",
-                borderBottom: 1,
-                borderColor: "divider",
-              }}
-            >
+            <p className="mb-3 border-b border-border pb-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
               {section.label}
-            </Typography>
+            </p>
           )}
-          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 2 }}>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
             {section.items.map((release) => (
               <Card
                 key={release.id}
-                variant="outlined"
-                sx={(theme) => ({
-                  borderRadius: `${theme.shape.borderRadius}px`,
-                  overflow: "hidden",
-                  transition: theme.transitions.create(
-                    ["transform", "box-shadow"],
-                    { duration: 200 }
-                  ),
-                  "@media (prefers-reduced-motion: reduce)": {
-                    transition: "none",
-                  },
-                  "&:hover": {
-                    transform: "translateY(-2px)",
-                    boxShadow: theme.shadows[4],
-                    "@media (prefers-reduced-motion: reduce)": {
-                      transform: "none",
-                    },
-                  },
-                })}
+                size="sm"
+                className="overflow-hidden py-0 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
               >
                 {release.cover_art_url ? (
-                  <CardMedia
-                    component="img"
-                    image={release.cover_art_url}
+                  <img
+                    src={release.cover_art_url}
                     alt={`${release.artist} - ${release.title}`}
-                    sx={{ aspectRatio: "1 / 1", objectFit: "cover" }}
+                    className="aspect-square w-full object-cover"
                   />
                 ) : (
-                  <Box
-                    sx={(theme) => ({
-                      aspectRatio: "1 / 1",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      bgcolor:
-                        theme.palette.mode === "dark"
-                          ? "rgba(255,255,255,0.03)"
-                          : "rgba(15,23,42,0.02)",
-                      color: theme.palette.text.secondary,
-                      borderBottom: `1px solid ${theme.palette.divider}`,
-                    })}
-                  >
-                    <AlbumIcon sx={{ fontSize: 48 }} />
-                  </Box>
+                  <div className="flex aspect-square items-center justify-center border-b border-border bg-muted text-muted-foreground">
+                    <Disc3 className="size-12" strokeWidth={1.5} />
+                  </div>
                 )}
-                <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
-                  <Typography variant="body2" fontWeight={600} noWrap title={release.title}>
+                <CardContent className="space-y-0.5 py-3">
+                  <p className="truncate text-sm font-semibold" title={release.title}>
                     {release.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" noWrap title={release.artist}>
+                  </p>
+                  <p className="truncate text-sm text-muted-foreground" title={release.artist}>
                     {release.artist}
-                  </Typography>
+                  </p>
                   {release.country && (
-                    <Typography variant="caption" color="text.secondary" noWrap title={release.country} sx={{ display: "block" }}>
+                    <p className="truncate text-xs text-muted-foreground" title={release.country}>
                       {release.country}
-                    </Typography>
+                    </p>
                   )}
                   {release.format && (
-                    <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.5 }}>
-                      <MusicNoteIcon sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }} />
-                      <Box sx={{ minWidth: 0, overflow: "hidden" }}>
-                        <Typography variant="caption" color="text.secondary" noWrap title={release.format} sx={{ display: "block" }}>
-                          {release.format}
-                        </Typography>
-                      </Box>
-                    </Stack>
+                    <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                      <Music2 className="size-3.5 shrink-0" />
+                      <span className="min-w-0 truncate" title={release.format}>
+                        {release.format}
+                      </span>
+                    </div>
                   )}
                   {release.estimated_value !== null && release.estimated_value !== undefined && (
-                    <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.25 }}>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       ${Number(release.estimated_value).toFixed(2)}
-                    </Typography>
+                    </p>
                   )}
                 </CardContent>
               </Card>
             ))}
-          </Box>
-        </Box>
+          </div>
+        </div>
       ))}
     </>
   );

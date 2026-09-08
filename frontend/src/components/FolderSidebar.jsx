@@ -1,15 +1,27 @@
 import { useEffect, useState } from "react";
-import FolderIcon from "@mui/icons-material/Folder";
-import FolderOpenIcon from "@mui/icons-material/FolderOpen";
-import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
-import { alpha } from "@mui/material/styles";
-import List from "@mui/material/List";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import Typography from "@mui/material/Typography";
+import { Folder, FolderOpen, Library } from "lucide-react";
+
+import { cn } from "@/lib/utils";
 
 import { getFolders } from "../api/folders";
+
+function FolderItem({ isSelected, icon, label, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex w-full items-center gap-2 rounded-md border-l-2 border-transparent py-1.5 pr-2 pl-2.5 text-left text-sm transition-colors",
+        isSelected
+          ? "border-l-primary bg-primary/10 font-medium text-foreground"
+          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+      )}
+    >
+      {icon}
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+    </button>
+  );
+}
 
 export default function FolderSidebar({ selectedFolderId, onSelectFolder, refreshKey }) {
   const [folders, setFolders] = useState([]);
@@ -18,85 +30,34 @@ export default function FolderSidebar({ selectedFolderId, onSelectFolder, refres
     getFolders().then(setFolders);
   }, [refreshKey]);
 
-  // borderRadius: 0.75 preserves the pre-theme-change 6px corner radius
-  // (0.75 * theme.shape.borderRadius(8) = 6px, matching the prior
-  // 1.5 * 4px = 6px), since the sidebar's list items are deliberately kept
-  // slightly tighter-cornered than the 8px used elsewhere.
-  const itemSx = (theme) => ({
-    borderRadius: 0.75,
-    mx: 1,
-    mb: 0.25,
-    py: 0.5,
-    pl: 1,
-    borderLeft: "3px solid transparent",
-    "&.Mui-selected": {
-      bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.12 : 0.08),
-      borderLeftColor: theme.palette.primary.main,
-      "&:hover": {
-        bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.16 : 0.12),
-      },
-    },
-  });
-
   return (
-    <List
-      dense
-      disablePadding
-      subheader={
-        <Typography
-          variant="overline"
-          color="text.secondary"
-          sx={{ display: "block", px: 2, pt: 0.5, pb: 1 }}
-        >
-          Folders
-        </Typography>
-      }
-    >
-      <ListItemButton
-        selected={selectedFolderId === null}
+    <div className="space-y-0.5 px-1">
+      <p className="px-2.5 pt-0.5 pb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        Folders
+      </p>
+      <FolderItem
+        isSelected={selectedFolderId === null}
+        icon={
+          <Library
+            className={cn("size-4 shrink-0", selectedFolderId === null && "text-primary")}
+          />
+        }
+        label="All Folders"
         onClick={() => onSelectFolder(null)}
-        sx={itemSx}
-      >
-        <ListItemIcon sx={{ minWidth: 36 }}>
-          <LibraryMusicIcon fontSize="small" color={selectedFolderId === null ? "primary" : "action"} />
-        </ListItemIcon>
-        <ListItemText
-          primary="All Folders"
-          primaryTypographyProps={{
-            variant: "body2",
-            fontWeight: selectedFolderId === null ? 600 : 400,
-            color: selectedFolderId === null ? "text.primary" : "text.secondary",
-          }}
-        />
-      </ListItemButton>
+      />
       {folders.map((folder) => {
         const isSelected = selectedFolderId === folder.id;
+        const Icon = isSelected ? FolderOpen : Folder;
         return (
-          <ListItemButton
+          <FolderItem
             key={folder.id}
-            selected={isSelected}
+            isSelected={isSelected}
+            icon={<Icon className={cn("size-4 shrink-0", isSelected && "text-primary")} />}
+            label={folder.name}
             onClick={() => onSelectFolder(folder.id)}
-            sx={itemSx}
-          >
-            <ListItemIcon sx={{ minWidth: 36 }}>
-              {isSelected ? (
-                <FolderOpenIcon fontSize="small" color="primary" />
-              ) : (
-                <FolderIcon fontSize="small" color="action" />
-              )}
-            </ListItemIcon>
-            <ListItemText
-              primary={folder.name}
-              primaryTypographyProps={{
-                variant: "body2",
-                fontWeight: isSelected ? 600 : 400,
-                color: isSelected ? "text.primary" : "text.secondary",
-                noWrap: true,
-              }}
-            />
-          </ListItemButton>
+          />
         );
       })}
-    </List>
+    </div>
   );
 }

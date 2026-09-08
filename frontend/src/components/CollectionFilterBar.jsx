@@ -1,68 +1,74 @@
-import MenuItem from "@mui/material/MenuItem";
-import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const CONDITIONS = [
   "Mint", "Near Mint", "Very Good Plus", "Very Good",
   "Good Plus", "Good", "Fair", "Poor",
 ];
 
+const ANY_VALUE = "any";
+
 export default function CollectionFilterBar({ filters, onChange }) {
   const handleField = (field) => (event) => {
     onChange({ ...filters, [field]: event.target.value });
   };
 
+  const handleSelect = (field) => (value) => {
+    onChange({ ...filters, [field]: value === ANY_VALUE ? "" : value });
+  };
+
   return (
-    <Stack direction="row" spacing={1.5} sx={{ mb: 2, flexWrap: "wrap" }}>
-      <TextField
-        label="Format"
-        size="small"
+    <div className="mb-4 flex flex-wrap gap-2.5">
+      <Input
+        placeholder="Format"
         value={filters.format}
         onChange={handleField("format")}
+        className="h-9 w-36"
       />
-      <TextField
-        label="Artist"
-        size="small"
+      <Input
+        placeholder="Artist"
         value={filters.artist}
         onChange={handleField("artist")}
+        className="h-9 w-36"
       />
-      <TextField
-        select
-        label="Condition"
-        size="small"
-        sx={{ minWidth: 160 }}
-        value={filters.condition}
-        onChange={handleField("condition")}
-      >
-        <MenuItem value="">Any</MenuItem>
-        {CONDITIONS.map((condition) => (
-          <MenuItem key={condition} value={condition}>
-            {condition}
-          </MenuItem>
-        ))}
-      </TextField>
-      <TextField
-        select
-        label="Rating"
-        size="small"
-        sx={{ minWidth: 100 }}
-        value={filters.rating}
-        onChange={handleField("rating")}
-      >
-        <MenuItem value="">Any</MenuItem>
-        {[0, 1, 2, 3, 4, 5].map((rating) => (
-          <MenuItem key={rating} value={String(rating)}>
-            {rating}
-          </MenuItem>
-        ))}
-      </TextField>
-      <TextField
-        label="Year"
-        size="small"
-        sx={{ width: 100 }}
+      <Select value={filters.condition || ANY_VALUE} onValueChange={handleSelect("condition")}>
+        <SelectTrigger className="h-9 w-40">
+          <SelectValue placeholder="Condition" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ANY_VALUE}>Any condition</SelectItem>
+          {CONDITIONS.map((condition) => (
+            <SelectItem key={condition} value={condition}>
+              {condition}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={filters.rating || ANY_VALUE} onValueChange={handleSelect("rating")}>
+        <SelectTrigger className="h-9 w-28">
+          <SelectValue placeholder="Rating" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ANY_VALUE}>Any rating</SelectItem>
+          {[0, 1, 2, 3, 4, 5].map((rating) => (
+            <SelectItem key={rating} value={String(rating)}>
+              {rating}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Input
+        placeholder="Year"
         value={filters.year}
         onChange={handleField("year")}
+        className="h-9 w-24"
       />
-    </Stack>
+    </div>
   );
 }

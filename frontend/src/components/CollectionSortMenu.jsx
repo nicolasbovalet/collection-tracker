@@ -1,18 +1,14 @@
-import { useState } from "react";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import CheckIcon from "@mui/icons-material/Check";
-import SortIcon from "@mui/icons-material/Sort";
-import Button from "@mui/material/Button";
-import Divider from "@mui/material/Divider";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import Stack from "@mui/material/Stack";
-import { alpha } from "@mui/material/styles";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import { ArrowDown, ArrowUp, ArrowUpDown, Check } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 const FIELD_OPTIONS = [
   { value: "artist", label: "Artist" },
@@ -22,85 +18,43 @@ const FIELD_OPTIONS = [
 ];
 
 export default function CollectionSortMenu({ sort, onChange }) {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
-
-  const handleOpen = (event) => setAnchorEl(event.currentTarget);
-  const handleClose = () => setAnchorEl(null);
-
-  const handleDirectionChange = (_, value) => {
-    if (value) onChange({ ...sort, direction: value });
-  };
-
-  const handleFieldSelect = (field) => {
-    onChange({ ...sort, field });
-    handleClose();
-  };
-
   return (
-    <>
-      <Button
-        variant="outlined"
-        color="inherit"
-        size="small"
-        startIcon={<SortIcon fontSize="small" />}
-        onClick={handleOpen}
-        sx={{ color: "text.secondary", borderColor: "divider" }}
-      >
-        Sort
-      </Button>
-      <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-        <Stack sx={{ px: 1.5, py: 1 }}>
-          <ToggleButtonGroup
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="text-muted-foreground">
+          <ArrowUpDown className="size-3.5" />
+          Sort
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" onCloseAutoFocus={(event) => event.preventDefault()}>
+        <div className="px-1.5 py-1">
+          <ToggleGroup
+            type="single"
             value={sort.direction}
-            exclusive
-            size="small"
-            fullWidth
-            onChange={handleDirectionChange}
-            sx={(theme) => ({
-              "& .Mui-selected": {
-                bgcolor: alpha(theme.palette.primary.main, 0.12),
-                color: theme.palette.primary.main,
-                "&:hover": {
-                  bgcolor: alpha(theme.palette.primary.main, 0.18),
-                },
-              },
-            })}
+            onValueChange={(value) => value && onChange({ ...sort, direction: value })}
+            className="w-full"
           >
-            <ToggleButton value="asc" aria-label="Sort ascending">
-              <ArrowUpwardIcon fontSize="small" sx={{ mr: 0.5 }} />
+            <ToggleGroupItem value="asc" aria-label="Sort ascending" className="flex-1 gap-1 text-xs">
+              <ArrowUp className="size-3.5" />
               Ascending
-            </ToggleButton>
-            <ToggleButton value="desc" aria-label="Sort descending">
-              <ArrowDownwardIcon fontSize="small" sx={{ mr: 0.5 }} />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="desc" aria-label="Sort descending" className="flex-1 gap-1 text-xs">
+              <ArrowDown className="size-3.5" />
               Descending
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </Stack>
-        <Divider />
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+        <DropdownMenuSeparator />
         {FIELD_OPTIONS.map((option) => (
-          <MenuItem
+          <DropdownMenuItem
             key={option.value}
-            selected={sort.field === option.value}
-            onClick={() => handleFieldSelect(option.value)}
-            sx={(theme) => ({
-              "&.Mui-selected": {
-                bgcolor: alpha(theme.palette.primary.main, 0.12),
-                "&:hover": {
-                  bgcolor: alpha(theme.palette.primary.main, 0.18),
-                },
-              },
-            })}
+            onClick={() => onChange({ ...sort, field: option.value })}
           >
-            <ListItemIcon>
-              {sort.field === option.value && (
-                <CheckIcon fontSize="small" sx={{ color: "primary.main" }} />
-              )}
-            </ListItemIcon>
-            <ListItemText>{option.label}</ListItemText>
-          </MenuItem>
+            <Check className={sort.field === option.value ? "opacity-100" : "opacity-0"} />
+            {option.label}
+          </DropdownMenuItem>
         ))}
-      </Menu>
-    </>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

@@ -1,15 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import AlbumIcon from "@mui/icons-material/Album";
-import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
-import Avatar from "@mui/material/Avatar";
-import Button from "@mui/material/Button";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemAvatar from "@mui/material/ListItemAvatar";
-import ListItemText from "@mui/material/ListItemText";
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
-import { alpha } from "@mui/material/styles";
+import { ArrowLeftRight, Disc3 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 import { getReleases, moveToCollection } from "../api/releases";
 import AddToCollectionDialog from "./AddToCollectionDialog";
@@ -34,85 +27,53 @@ export default function WishlistTab() {
 
   if (items.length === 0) {
     return (
-      <Paper variant="outlined" sx={{ borderRadius: 1, py: 6, textAlign: "center", color: "text.secondary" }}>
-        <Typography variant="body2">Your wishlist is empty.</Typography>
-      </Paper>
+      <div className="rounded-lg border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+        Your wishlist is empty.
+      </div>
     );
   }
 
   return (
     <>
-      <Paper variant="outlined" sx={{ borderRadius: 2, overflow: "hidden" }}>
-        <List disablePadding>
-          {items.map((item) => (
-            <ListItem
-              key={item.id}
-              divider
-              sx={(theme) => ({
-                py: 1.5,
-                px: { xs: 1.5, sm: 2 },
-                gap: 1.5,
-                flexWrap: { xs: "wrap", sm: "nowrap" },
-                transition: theme.transitions.create("background-color", { duration: 150 }),
-                "@media (prefers-reduced-motion: reduce)": { transition: "none" },
-                "&:hover": { bgcolor: alpha(theme.palette.primary.main, 0.04) },
-              })}
-              secondaryAction={
-                <Button
-                  variant="contained"
-                  color="primary"
-                  size="small"
-                  startIcon={<SwapHorizIcon fontSize="small" />}
-                  onClick={() => setTarget(item)}
-                >
-                  Move to Collection
-                </Button>
-              }
-            >
-              <ListItemAvatar>
-                <Avatar
-                  variant="rounded"
-                  src={item.cover_art_url || undefined}
-                  alt={`${item.artist} - ${item.title} cover art`}
-                  sx={(theme) => ({
-                    width: 56,
-                    height: 56,
-                    bgcolor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.04)" : "rgba(15,23,42,0.03)",
-                    color: theme.palette.text.secondary,
-                  })}
-                >
-                  <AlbumIcon />
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText
-                sx={{ minWidth: 0, pr: { sm: 20 } }}
-                primary={
-                  <Typography variant="subtitle2" fontWeight={600} noWrap title={item.title}>
-                    {item.title}
-                  </Typography>
-                }
-                secondary={
-                  <>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      noWrap
-                      title={item.artist}
-                      sx={{ display: "block" }}
-                    >
-                      {item.artist}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-                      {item.format || "Unknown format"} · {item.released_year || "Unknown year"}
-                    </Typography>
-                  </>
-                }
-                secondaryTypographyProps={{ component: "div" }}
+      <Card className="gap-0 overflow-hidden py-0">
+        {items.map((item) => (
+          <div
+            key={item.id}
+            className="flex flex-wrap items-center gap-3 border-b border-border px-3 py-3 transition-colors last:border-b-0 hover:bg-accent/50 sm:flex-nowrap sm:px-4"
+          >
+            {item.cover_art_url ? (
+              <img
+                src={item.cover_art_url}
+                alt={`${item.artist} - ${item.title} cover art`}
+                className="size-14 shrink-0 rounded-lg object-cover"
               />
-            </ListItem>
-          ))}
-        </List>
-      </Paper>
+            ) : (
+              <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                <Disc3 className="size-6" strokeWidth={1.5} />
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold" title={item.title}>
+                {item.title}
+              </p>
+              <p className="truncate text-sm text-muted-foreground" title={item.artist}>
+                {item.artist}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {item.format || "Unknown format"} · {item.released_year || "Unknown year"}
+              </p>
+            </div>
+            <Button
+              size="sm"
+              className="ml-auto shrink-0 sm:ml-0"
+              onClick={() => setTarget(item)}
+            >
+              <ArrowLeftRight className="size-3.5" />
+              Move to Collection
+            </Button>
+          </div>
+        ))}
+      </Card>
       <AddToCollectionDialog
         open={Boolean(target)}
         onClose={() => setTarget(null)}
