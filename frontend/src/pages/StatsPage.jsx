@@ -1,15 +1,36 @@
 import { useEffect, useState } from "react";
-import Box from "@mui/material/Box";
-import Divider from "@mui/material/Divider";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import { BarChart } from "@mui/x-charts/BarChart";
-import { LineChart } from "@mui/x-charts/LineChart";
-import { PieChart } from "@mui/x-charts/PieChart";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  XAxis,
+} from "recharts";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { Separator } from "@/components/ui/separator";
 
 import CsvImportPanel from "../components/CsvImportPanel";
 import { getStats } from "../api/stats";
+
+const CHART_COLORS = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+];
+
+const chartConfig = { value: { label: "Count" } };
 
 function distributionToChartData(distribution) {
   return Object.entries(distribution).map(([label, value], index) => ({
@@ -41,74 +62,111 @@ export default function StatsPage() {
       : "—";
 
   return (
-    <Box>
-      <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
-        Stats
-      </Typography>
+    <div>
+      <h1 className="mb-6 text-2xl font-semibold tracking-tight">Stats</h1>
 
-      <Stack direction="row" spacing={2} sx={{ mb: 3, flexWrap: "wrap" }}>
-        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, flex: 1, minWidth: 160 }}>
-          <Typography variant="body2" color="text.secondary">
-            Estimated Value
-          </Typography>
-          <Typography variant="h4" fontWeight={700}>
-            {totalValueLabel}
-          </Typography>
-        </Paper>
-      </Stack>
+      <div className="mb-6 flex flex-wrap gap-4">
+        <Card className="min-w-40 flex-1">
+          <CardContent className="space-y-1">
+            <p className="text-sm text-muted-foreground">Estimated Value</p>
+            <p className="text-3xl font-semibold tracking-tight">{totalValueLabel}</p>
+          </CardContent>
+        </Card>
+      </div>
 
-      <Stack direction="row" spacing={2} sx={{ mb: 3, flexWrap: "wrap" }}>
-        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, flex: 1, minWidth: 220 }}>
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            Format Distribution
-          </Typography>
-          <PieChart series={[{ data: formatData }]} height={220} />
-        </Paper>
-        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, flex: 1, minWidth: 220 }}>
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            Condition Distribution
-          </Typography>
-          <BarChart
-            xAxis={[{ scaleType: "band", data: conditionData.map((d) => d.label) }]}
-            series={[{ data: conditionData.map((d) => d.value) }]}
-            height={220}
-          />
-        </Paper>
-        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, flex: 1, minWidth: 220 }}>
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            Genre Distribution
-          </Typography>
-          <BarChart
-            xAxis={[{ scaleType: "band", data: genreData.map((d) => d.label) }]}
-            series={[{ data: genreData.map((d) => d.value) }]}
-            height={220}
-          />
-        </Paper>
-      </Stack>
+      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Card className="min-w-0">
+          <CardHeader>
+            <CardTitle>Format Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-56">
+              <PieChart>
+                <ChartTooltip content={<ChartTooltipContent nameKey="label" hideLabel />} />
+                <Pie data={formatData} dataKey="value" nameKey="label" innerRadius={40}>
+                  {formatData.map((entry, index) => (
+                    <Cell key={entry.label} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
 
-      <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mb: 3 }}>
-        <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-          Cumulative Value by Date Added
-        </Typography>
-        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
-          Approximates collection growth based on when items were added, valued at
-          today's prices — not a historical record of actual market price changes.
-        </Typography>
-        <LineChart
-          xAxis={[{ scaleType: "point", data: cumulativeSeries.map((point) => point.date_added) }]}
-          series={[
-            {
-              data: cumulativeSeries.map((point) => Number(point.cumulative_value)),
-              valueFormatter: (value) => (value == null ? "" : `$${value.toFixed(2)}`),
-            },
-          ]}
-          height={220}
-        />
-      </Paper>
+        <Card className="min-w-0">
+          <CardHeader>
+            <CardTitle>Condition Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="max-h-56 w-full">
+              <BarChart data={conditionData}>
+                <CartesianGrid vertical={false} />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} />
+                <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                <Bar dataKey="value" fill="var(--chart-1)" radius={4} />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
 
-      <Divider sx={{ mb: 3 }} />
+        <Card className="min-w-0">
+          <CardHeader>
+            <CardTitle>Genre Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="max-h-56 w-full">
+              <BarChart data={genreData}>
+                <CartesianGrid vertical={false} />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} />
+                <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                <Bar dataKey="value" fill="var(--chart-2)" radius={4} />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Cumulative Value by Date Added</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Approximates collection growth based on when items were added, valued at
+            today&apos;s prices — not a historical record of actual market price changes.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={chartConfig} className="max-h-56 w-full">
+            <LineChart
+              data={cumulativeSeries.map((point) => ({
+                date_added: point.date_added,
+                value: Number(point.cumulative_value),
+              }))}
+            >
+              <CartesianGrid vertical={false} />
+              <XAxis dataKey="date_added" tickLine={false} axisLine={false} fontSize={11} />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    hideLabel
+                    formatter={(value) => `$${Number(value).toFixed(2)}`}
+                  />
+                }
+              />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="var(--chart-1)"
+                strokeWidth={2}
+                dot={false}
+              />
+            </LineChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+
+      <Separator className="mb-6" />
 
       <CsvImportPanel />
-    </Box>
+    </div>
   );
 }

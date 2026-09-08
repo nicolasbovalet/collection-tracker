@@ -1,15 +1,8 @@
 import { useState } from "react";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import DownloadIcon from "@mui/icons-material/Download";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import Divider from "@mui/material/Divider";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import { alpha } from "@mui/material/styles";
+import { CheckCircle2, Download, Loader2, Upload } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 import { commitImport, dryRunImport } from "../api/importCsv";
 import FolderConflictModal from "./FolderConflictModal";
@@ -52,75 +45,43 @@ export default function CsvImportPanel() {
   };
 
   return (
-    <Stack spacing={3} sx={{ maxWidth: 480 }}>
-      <Box>
-        <Typography variant="overline" color="text.secondary" sx={{ display: "block", mb: 1 }}>
+    <div className="max-w-md space-y-6">
+      <div>
+        <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
           Import
-        </Typography>
-        <Paper
-          variant="outlined"
-          component="label"
-          sx={(theme) => ({
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 0.5,
-            px: 3,
-            py: 4,
-            borderStyle: "dashed",
-            borderRadius: 2,
-            cursor: "pointer",
-            textAlign: "center",
-            bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.04 : 0.03),
-            transition: theme.transitions.create(["background-color", "border-color"]),
-            "@media (prefers-reduced-motion: reduce)": { transition: "none" },
-            "&:hover": {
-              borderColor: theme.palette.primary.main,
-              bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.08 : 0.06),
-            },
-          })}
-        >
-          <CloudUploadIcon color="primary" />
-          <Typography variant="body2" fontWeight={600}>
+        </p>
+        <label className="flex cursor-pointer flex-col items-center gap-1 rounded-xl border border-dashed border-border bg-primary/[0.03] px-6 py-8 text-center transition-colors hover:border-primary hover:bg-primary/[0.06]">
+          <Upload className="size-5 text-primary" />
+          <p className="text-sm font-semibold">
             {file ? file.name : "Choose a Discogs CSV file"}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
+          </p>
+          <p className="text-xs text-muted-foreground">
             {file ? "Click to choose a different file" : "Click to browse"}
-          </Typography>
+          </p>
           <input
             type="file"
             accept=".csv"
             hidden
             onChange={(event) => setFile(event.target.files[0] || null)}
           />
-        </Paper>
-      </Box>
+        </label>
+      </div>
 
-      <Stack direction="row" spacing={2} alignItems="center">
-        <Button variant="contained" color="primary" disabled={!file || loading} onClick={handleImportClick}>
+      <div className="flex items-center gap-3">
+        <Button disabled={!file || loading} onClick={handleImportClick}>
           Import
         </Button>
-        {loading && <CircularProgress size={24} />}
-      </Stack>
+        {loading && <Loader2 className="size-5 animate-spin text-muted-foreground" />}
+      </div>
 
       {summary && (
-        <Paper
-          variant="outlined"
-          sx={(theme) => ({
-            p: 2,
-            borderRadius: 2,
-            borderColor: alpha(theme.palette.success.main, 0.4),
-            bgcolor: alpha(theme.palette.success.main, theme.palette.mode === "dark" ? 0.08 : 0.06),
-          })}
-        >
-          <Stack direction="row" spacing={1} alignItems="flex-start">
-            <CheckCircleIcon color="success" fontSize="small" sx={{ mt: 0.25 }} />
-            <Typography variant="body2">
-              Imported {summary.created} releases, skipped {summary.skipped_duplicates}{" "}
-              duplicates. Folders created: {summary.folders_created.join(", ") || "none"}.
-            </Typography>
-          </Stack>
-        </Paper>
+        <div className="flex items-start gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-3">
+          <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+          <p className="text-sm">
+            Imported {summary.created} releases, skipped {summary.skipped_duplicates}{" "}
+            duplicates. Folders created: {summary.folders_created.join(", ") || "none"}.
+          </p>
+        </div>
       )}
 
       <FolderConflictModal
@@ -129,22 +90,19 @@ export default function CsvImportPanel() {
         onChoose={runCommit}
       />
 
-      <Divider />
+      <Separator />
 
-      <Box>
-        <Typography variant="overline" color="text.secondary" sx={{ display: "block", mb: 1 }}>
+      <div>
+        <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
           Export
-        </Typography>
-        <Button
-          variant="outlined"
-          color="secondary"
-          component="a"
-          href="/api/export/discogs-csv/"
-          startIcon={<DownloadIcon />}
-        >
-          Export Collection to CSV
+        </p>
+        <Button variant="secondary" asChild>
+          <a href="/api/export/discogs-csv/">
+            <Download className="size-4" />
+            Export Collection to CSV
+          </a>
         </Button>
-      </Box>
-    </Stack>
+      </div>
+    </div>
   );
 }
