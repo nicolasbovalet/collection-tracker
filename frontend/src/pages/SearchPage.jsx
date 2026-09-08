@@ -1,7 +1,5 @@
 import { useCallback, useState } from "react";
-import Box from "@mui/material/Box";
-import Snackbar from "@mui/material/Snackbar";
-import Typography from "@mui/material/Typography";
+import { toast } from "sonner";
 
 import AddToCollectionDialog from "../components/AddToCollectionDialog";
 import SearchBar from "../components/SearchBar";
@@ -11,11 +9,10 @@ import { parseArtistTitle } from "../utils/discogsFormat";
 
 export default function SearchPage() {
   const [searchResults, setSearchResults] = useState([]);
-  const [wishlistedMessage, setWishlistedMessage] = useState("");
   const [addToCollectionTarget, setAddToCollectionTarget] = useState(null);
 
   const handleResults = useCallback((results) => setSearchResults(results), []);
-  const handleWishlisted = useCallback(() => setWishlistedMessage("Added to wishlist"), []);
+  const handleWishlisted = useCallback(() => toast.success("Added to wishlist"), []);
   const handleAddToCollection = useCallback((result) => {
     setAddToCollectionTarget(result);
   }, []);
@@ -38,10 +35,8 @@ export default function SearchPage() {
   };
 
   return (
-    <Box>
-      <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
-        Search
-      </Typography>
+    <div>
+      <h1 className="mb-6 text-2xl font-semibold tracking-tight">Search</h1>
       <SearchBar onResults={handleResults} />
       {searchResults.length > 0 ? (
         <SearchResultsList
@@ -50,30 +45,15 @@ export default function SearchPage() {
           onWishlisted={handleWishlisted}
         />
       ) : (
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+        <p className="mt-4 text-sm text-muted-foreground">
           Search Discogs to add releases to your wishlist or collection.
-        </Typography>
+        </p>
       )}
       <AddToCollectionDialog
         open={Boolean(addToCollectionTarget)}
         onClose={() => setAddToCollectionTarget(null)}
         onSubmit={handleDialogSubmit}
       />
-      <Snackbar
-        open={Boolean(wishlistedMessage)}
-        autoHideDuration={3000}
-        onClose={() => setWishlistedMessage("")}
-        message={wishlistedMessage}
-        ContentProps={{
-          sx: (theme) => ({
-            bgcolor: "background.paper",
-            color: "text.primary",
-            border: `1px solid ${theme.palette.divider}`,
-            borderRadius: 2,
-            boxShadow: theme.shadows[6],
-          }),
-        }}
-      />
-    </Box>
+    </div>
   );
 }

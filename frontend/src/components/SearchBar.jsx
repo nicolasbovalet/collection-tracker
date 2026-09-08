@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import SearchIcon from "@mui/icons-material/Search";
-import InputAdornment from "@mui/material/InputAdornment";
-import TextField from "@mui/material/TextField";
-import { alpha } from "@mui/material/styles";
+import { Search } from "lucide-react";
+
+import { Input } from "@/components/ui/input";
 
 import { searchDiscogs } from "../api/discogs";
 import useDebouncedValue from "../hooks/useDebouncedValue";
@@ -26,31 +25,14 @@ export default function SearchBar({ onResults }) {
   }, [debouncedQuery, onResults]);
 
   return (
-    <TextField
-      fullWidth
-      label="Search Discogs"
-      value={query}
-      onChange={(event) => setQuery(event.target.value)}
-      InputProps={{
-        startAdornment: (
-          <InputAdornment position="start">
-            <SearchIcon fontSize="small" sx={{ color: "text.secondary" }} />
-          </InputAdornment>
-        ),
-      }}
-      sx={(theme) => ({
-        "& .MuiOutlinedInput-root": {
-          borderRadius: 3,
-          bgcolor: "background.paper",
-          transition: theme.transitions.create(["box-shadow"]),
-          "@media (prefers-reduced-motion: reduce)": {
-            transition: "none",
-          },
-          "&.Mui-focused": {
-            boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.18)}`,
-          },
-        },
-      })}
-    />
+    <div className="relative">
+      <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+      <Input
+        placeholder="Search Discogs"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        className="h-11 rounded-xl pl-9 shadow-xs focus-visible:ring-4 focus-visible:ring-primary/15"
+      />
+    </div>
   );
 }
