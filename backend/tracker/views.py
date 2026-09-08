@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+import requests
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import generics
@@ -93,6 +94,11 @@ class ReleaseListView(generics.ListAPIView):
         return queryset
 
 
+class ReleaseDetailView(generics.RetrieveDestroyAPIView):
+    queryset = Release.objects.all()
+    serializer_class = ReleaseSerializer
+
+
 class DiscogsSearchView(APIView):
     def get(self, request):
         query = request.query_params.get("q", "").strip()
@@ -104,6 +110,20 @@ class DiscogsSearchView(APIView):
         client = DiscogsClient()
         results = client.search(query)
         return Response({"results": results})
+
+
+class DiscogsReleaseDetailView(APIView):
+    def get(self, request, release_id):
+        client = DiscogsClient()
+        try:
+            details = client.get_release_full_details(release_id)
+        except requests.HTTPError as error:
+            status_code = error.response.status_code if error.response is not None else 502
+            return Response(
+                {"detail": "Could not fetch release details from Discogs."},
+                status=status_code if status_code in (404, 429) else drf_status.HTTP_502_BAD_GATEWAY,
+            )
+        return Response(details)
 
 
 class CsvImportDryRunView(APIView):

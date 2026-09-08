@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { addToWishlist } from "../api/releases";
 import { parseArtistTitle } from "../utils/discogsFormat";
 
-export default function SearchResultItem({ result, onAddToCollection, onWishlisted }) {
+export default function SearchResultItem({ result, onAddToCollection, onWishlisted, onSelectResult }) {
   const { artist, title } = parseArtistTitle(result.title);
 
   const handleAddToWishlist = async () => {
@@ -23,7 +23,15 @@ export default function SearchResultItem({ result, onAddToCollection, onWishlist
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-3 border-b border-border px-3 py-3 transition-colors last:border-b-0 hover:bg-accent/50 sm:flex-nowrap sm:px-4">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onSelectResult(result)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") onSelectResult(result);
+      }}
+      className="flex flex-wrap items-center gap-3 border-b border-border px-3 py-3 transition-colors last:border-b-0 hover:bg-accent/50 sm:flex-nowrap sm:px-4 cursor-pointer"
+    >
       {result.thumb ? (
         <img
           src={result.thumb}
@@ -47,11 +55,24 @@ export default function SearchResultItem({ result, onAddToCollection, onWishlist
         </p>
       </div>
       <div className="ml-auto flex shrink-0 gap-2 sm:ml-0">
-        <Button variant="secondary" size="sm" onClick={handleAddToWishlist}>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={(event) => {
+            event.stopPropagation();
+            handleAddToWishlist();
+          }}
+        >
           <Heart className="size-3.5" />
           Add to Wishlist
         </Button>
-        <Button size="sm" onClick={() => onAddToCollection(result)}>
+        <Button
+          size="sm"
+          onClick={(event) => {
+            event.stopPropagation();
+            onAddToCollection(result);
+          }}
+        >
           <Plus className="size-3.5" />
           Add to Collection
         </Button>

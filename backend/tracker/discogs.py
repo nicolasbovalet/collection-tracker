@@ -86,3 +86,50 @@ class DiscogsClient:
             "estimated_value": estimated_value,
             "num_for_sale": num_for_sale,
         }
+
+    def get_release_full_details(self, release_id):
+        data = self.get_release(release_id)
+        images = data.get("images") or []
+        community = data.get("community") or {}
+        rating = community.get("rating") or {}
+        return {
+            "id": data.get("id"),
+            "title": data.get("title", ""),
+            "artists": [a.get("name", "") for a in (data.get("artists") or [])],
+            "year": data.get("year"),
+            "released": data.get("released", ""),
+            "country": data.get("country", ""),
+            "genres": data.get("genres") or [],
+            "styles": data.get("styles") or [],
+            "labels": [
+                {"name": label.get("name", ""), "catno": label.get("catno", "")}
+                for label in (data.get("labels") or [])
+            ],
+            "format": _format_summary(data.get("formats") or []),
+            "notes": data.get("notes", ""),
+            "tracklist": [
+                {
+                    "position": track.get("position", ""),
+                    "type": track.get("type_", "track"),
+                    "title": track.get("title", ""),
+                    "duration": track.get("duration", ""),
+                }
+                for track in (data.get("tracklist") or [])
+            ],
+            "cover_art_url": images[0].get("uri", "") if images else "",
+            "community_rating_average": rating.get("average"),
+            "community_rating_count": rating.get("count"),
+            "have": community.get("have"),
+            "want": community.get("want"),
+            "lowest_price": data.get("lowest_price"),
+            "num_for_sale": data.get("num_for_sale"),
+            "discogs_url": data.get("uri") or f"https://www.discogs.com/release/{release_id}",
+        }
+
+
+def _format_summary(formats):
+    parts = []
+    for fmt in formats:
+        parts.append(fmt.get("name", ""))
+        parts.extend(fmt.get("descriptions") or [])
+    return ", ".join(part for part in parts if part)

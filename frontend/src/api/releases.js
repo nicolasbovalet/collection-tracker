@@ -19,3 +19,7 @@ export async function moveToCollection(id, payload) {
   const response = await client.post(`/releases/${id}/move-to-collection/`, payload);
   return response.data;
 }
+
+export async function deleteRelease(id) {
+  await client.delete(`/releases/${id}/`);
+}

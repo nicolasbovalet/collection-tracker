@@ -18,6 +18,7 @@ import { groupReleasesBySort } from "../utils/groupReleases";
 import CollectionCoverGrid from "./CollectionCoverGrid";
 import CollectionFilterBar from "./CollectionFilterBar";
 import CollectionSortMenu from "./CollectionSortMenu";
+import ReleaseDetailsDialog from "./ReleaseDetailsDialog";
 
 const columns = [
   { accessorKey: "artist", header: "Artist" },
@@ -41,6 +42,7 @@ export default function CollectionGrid({ folderId, refreshKey }) {
   const [releases, setReleases] = useState([]);
   const [sort, setSort] = useState({ field: "artist", direction: "asc" });
   const [viewMode, setViewMode] = useState("cover");
+  const [selectedRelease, setSelectedRelease] = useState(null);
   const [filters, setFilters] = useState({
     format: "",
     artist: "",
@@ -114,7 +116,7 @@ export default function CollectionGrid({ folderId, refreshKey }) {
         </div>
       </div>
       {viewMode === "cover" ? (
-        <CollectionCoverGrid sections={sections} />
+        <CollectionCoverGrid sections={sections} onSelectRelease={setSelectedRelease} />
       ) : releases.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
           No releases match the current filters.
@@ -142,7 +144,11 @@ export default function CollectionGrid({ folderId, refreshKey }) {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  <TableRow key={item.key}>
+                  <TableRow
+                    key={item.key}
+                    className="cursor-pointer"
+                    onClick={() => setSelectedRelease(item.row.original)}
+                  >
                     {item.row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id} className="whitespace-nowrap">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -155,6 +161,14 @@ export default function CollectionGrid({ folderId, refreshKey }) {
           </Table>
         </div>
       )}
+
+      <ReleaseDetailsDialog
+        open={Boolean(selectedRelease)}
+        onOpenChange={(next) => !next && setSelectedRelease(null)}
+        discogsId={selectedRelease?.discogs_release_id}
+        localRelease={selectedRelease}
+        onDeleted={(id) => setReleases((prev) => prev.filter((release) => release.id !== id))}
+      />
     </>
   );
 }

@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { getStats } from "../api/stats";
+import ReleaseDetailsDialog from "../components/ReleaseDetailsDialog";
 
 const container = {
   hidden: { opacity: 0 },
@@ -51,6 +52,7 @@ function DashboardSkeleton() {
 
 export default function DashboardPage() {
   const [stats, setStats] = useState(null);
+  const [selectedRelease, setSelectedRelease] = useState(null);
 
   useEffect(() => {
     getStats().then(setStats);
@@ -91,7 +93,13 @@ export default function DashboardPage() {
           <motion.div key={release.id} variants={item}>
             <Card
               size="sm"
-              className="group overflow-hidden transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+              role="button"
+              tabIndex={0}
+              onClick={() => setSelectedRelease(release)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") setSelectedRelease(release);
+              }}
+              className="group cursor-pointer overflow-hidden transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-lg"
             >
               {release.cover_art_url ? (
                 <img
@@ -116,6 +124,14 @@ export default function DashboardPage() {
           </motion.div>
         ))}
       </motion.div>
+
+      <ReleaseDetailsDialog
+        open={Boolean(selectedRelease)}
+        onOpenChange={(next) => !next && setSelectedRelease(null)}
+        discogsId={selectedRelease?.discogs_release_id}
+        localRelease={selectedRelease}
+        onDeleted={() => getStats().then(setStats)}
+      />
     </div>
   );
 }

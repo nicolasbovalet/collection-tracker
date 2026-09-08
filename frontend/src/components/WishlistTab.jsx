@@ -6,10 +6,12 @@ import { Card } from "@/components/ui/card";
 
 import { getReleases, moveToCollection } from "../api/releases";
 import AddToCollectionDialog from "./AddToCollectionDialog";
+import ReleaseDetailsDialog from "./ReleaseDetailsDialog";
 
 export default function WishlistTab() {
   const [items, setItems] = useState([]);
   const [target, setTarget] = useState(null);
+  const [selectedRelease, setSelectedRelease] = useState(null);
 
   const refresh = useCallback(() => {
     getReleases({ status: "wishlist" }).then(setItems);
@@ -39,7 +41,13 @@ export default function WishlistTab() {
         {items.map((item) => (
           <div
             key={item.id}
-            className="flex flex-wrap items-center gap-3 border-b border-border px-3 py-3 transition-colors last:border-b-0 hover:bg-accent/50 sm:flex-nowrap sm:px-4"
+            role="button"
+            tabIndex={0}
+            onClick={() => setSelectedRelease(item)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") setSelectedRelease(item);
+            }}
+            className="flex flex-wrap items-center gap-3 border-b border-border px-3 py-3 transition-colors last:border-b-0 hover:bg-accent/50 sm:flex-nowrap sm:px-4 cursor-pointer"
           >
             {item.cover_art_url ? (
               <img
@@ -66,7 +74,10 @@ export default function WishlistTab() {
             <Button
               size="sm"
               className="ml-auto shrink-0 sm:ml-0"
-              onClick={() => setTarget(item)}
+              onClick={(event) => {
+                event.stopPropagation();
+                setTarget(item);
+              }}
             >
               <ArrowLeftRight className="size-3.5" />
               Move to Collection
@@ -78,6 +89,13 @@ export default function WishlistTab() {
         open={Boolean(target)}
         onClose={() => setTarget(null)}
         onSubmit={handleSubmit}
+      />
+      <ReleaseDetailsDialog
+        open={Boolean(selectedRelease)}
+        onOpenChange={(next) => !next && setSelectedRelease(null)}
+        discogsId={selectedRelease?.discogs_release_id}
+        localRelease={selectedRelease}
+        onDeleted={(id) => setItems((prev) => prev.filter((item) => item.id !== id))}
       />
     </>
   );

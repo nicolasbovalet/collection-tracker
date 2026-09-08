@@ -2,7 +2,7 @@ import { Disc3, Music2 } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 
-export default function CollectionCoverGrid({ sections }) {
+export default function CollectionCoverGrid({ sections, onSelectRelease }) {
   const totalCount = sections.reduce((sum, section) => sum + section.items.length, 0);
 
   if (totalCount === 0) {
@@ -27,7 +27,13 @@ export default function CollectionCoverGrid({ sections }) {
               <Card
                 key={release.id}
                 size="sm"
-                className="overflow-hidden py-0 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                role="button"
+                tabIndex={0}
+                onClick={() => onSelectRelease(release)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") onSelectRelease(release);
+                }}
+                className="cursor-pointer overflow-hidden py-0 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
               >
                 {release.cover_art_url ? (
                   <img

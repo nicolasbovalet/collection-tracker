@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 
 import SearchResultItem from "./SearchResultItem";
 
-export default function SearchResultsList({ results, onAddToCollection, onWishlisted }) {
+export default function SearchResultsList({ results, onAddToCollection, onWishlisted, onSelectResult }) {
   return (
     <Card className="mt-4 mb-6 gap-0 overflow-hidden py-0">
       <div className="border-b border-border bg-accent/50 px-4 py-2.5">
@@ -17,6 +17,7 @@ export default function SearchResultsList({ results, onAddToCollection, onWishli
             result={result}
             onAddToCollection={onAddToCollection}
             onWishlisted={onWishlisted}
+            onSelectResult={onSelectResult}
           />
         ))}
       </div>

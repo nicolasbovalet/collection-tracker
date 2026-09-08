@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
 import AddToCollectionDialog from "../components/AddToCollectionDialog";
+import ReleaseDetailsDialog from "../components/ReleaseDetailsDialog";
 import SearchBar from "../components/SearchBar";
 import SearchResultsList from "../components/SearchResultsList";
 import { addToCollection } from "../api/releases";
@@ -10,6 +11,7 @@ import { parseArtistTitle } from "../utils/discogsFormat";
 export default function SearchPage() {
   const [searchResults, setSearchResults] = useState([]);
   const [addToCollectionTarget, setAddToCollectionTarget] = useState(null);
+  const [selectedResult, setSelectedResult] = useState(null);
 
   const handleResults = useCallback((results) => setSearchResults(results), []);
   const handleWishlisted = useCallback(() => toast.success("Added to wishlist"), []);
@@ -43,6 +45,7 @@ export default function SearchPage() {
           results={searchResults}
           onAddToCollection={handleAddToCollection}
           onWishlisted={handleWishlisted}
+          onSelectResult={setSelectedResult}
         />
       ) : (
         <p className="mt-4 text-sm text-muted-foreground">
@@ -53,6 +56,11 @@ export default function SearchPage() {
         open={Boolean(addToCollectionTarget)}
         onClose={() => setAddToCollectionTarget(null)}
         onSubmit={handleDialogSubmit}
+      />
+      <ReleaseDetailsDialog
+        open={Boolean(selectedResult)}
+        onOpenChange={(next) => !next && setSelectedResult(null)}
+        discogsId={selectedResult?.id}
       />
     </div>
   );

@@ -48,6 +48,26 @@ class ReleaseListApiTests(APITestCase):
         self.assertEqual(titles, ["OK Computer", "Kind of Blue"])
 
 
+class ReleaseDeleteApiTests(APITestCase):
+    def setUp(self):
+        self.release = Release.objects.create(
+            discogs_release_id=1, artist="Radiohead", title="OK Computer",
+            format="Vinyl, LP", status=Release.STATUS_COLLECTION,
+            date_added=timezone.now(),
+        )
+
+    def test_deletes_release(self):
+        response = self.client.delete(f"/api/releases/{self.release.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Release.objects.filter(id=self.release.id).exists())
+
+    def test_deleting_missing_release_returns_404(self):
+        response = self.client.delete("/api/releases/999999/")
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
 class ReleaseListOrderingTests(APITestCase):
     """Covers case-insensitive, "The "-stripping ordering for artist/title."""
 
