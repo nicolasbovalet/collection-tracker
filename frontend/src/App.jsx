@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
-import Box from "@mui/material/Box";
-import CssBaseline from "@mui/material/CssBaseline";
-import ThemeProvider from "@mui/material/styles/ThemeProvider";
-import useMediaQuery from "@mui/material/useMediaQuery";
+import { AnimatePresence, motion } from "framer-motion";
+import { Route, Routes, useLocation } from "react-router-dom";
+
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import useSystemTheme from "@/hooks/useSystemTheme";
 
 import CollectionTab from "./components/CollectionTab";
 import MobileBottomNav from "./components/MobileBottomNav";
@@ -11,34 +12,44 @@ import WishlistTab from "./components/WishlistTab";
 import DashboardPage from "./pages/DashboardPage";
 import SearchPage from "./pages/SearchPage";
 import StatsPage from "./pages/StatsPage";
-import { createAppTheme } from "./theme";
 
-export default function App() {
-  // Dark is the default look; only fall back to the light palette when the
-  // OS explicitly prefers light. Dark preference, no preference, or an
-  // unsupported media query all resolve to dark.
-  const prefersLight = useMediaQuery("(prefers-color-scheme: light)");
-  const theme = useMemo(
-    () => createAppTheme(prefersLight ? "light" : "dark"),
-    [prefersLight]
-  );
-
-  const [activePage, setActivePage] = useState("dashboard");
+function AnimatedRoutes() {
+  const location = useLocation();
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box sx={{ display: "flex", bgcolor: "background.default", minHeight: "100vh" }}>
-        <Sidebar activePage={activePage} onSelectPage={setActivePage} />
-        <Box component="main" sx={{ flexGrow: 1, minWidth: 0, p: 2, pb: { xs: 9, md: 2 } }}>
-          {activePage === "dashboard" && <DashboardPage />}
-          {activePage === "collection" && <CollectionTab refreshKey={0} />}
-          {activePage === "wishlist" && <WishlistTab />}
-          {activePage === "search" && <SearchPage />}
-          {activePage === "stats" && <StatsPage />}
-        </Box>
-        <MobileBottomNav activePage={activePage} onSelectPage={setActivePage} />
-      </Box>
-    </ThemeProvider>
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.18, ease: "easeOut" }}
+      >
+        <Routes location={location}>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/collection" element={<CollectionTab refreshKey={0} />} />
+          <Route path="/wishlist" element={<WishlistTab />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/stats" element={<StatsPage />} />
+        </Routes>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+export default function App() {
+  useSystemTheme();
+
+  return (
+    <TooltipProvider delayDuration={200}>
+      <div className="flex min-h-screen bg-background text-foreground">
+        <Sidebar />
+        <main className="min-w-0 flex-1 px-4 pb-24 pt-6 md:px-8 md:pb-8">
+          <AnimatedRoutes />
+        </main>
+        <MobileBottomNav />
+      </div>
+      <Toaster />
+    </TooltipProvider>
   );
 }

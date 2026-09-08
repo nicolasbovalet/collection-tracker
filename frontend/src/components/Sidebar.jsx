@@ -1,60 +1,43 @@
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import SearchIcon from "@mui/icons-material/Search";
-import BarChartIcon from "@mui/icons-material/BarChart";
-import Drawer from "@mui/material/Drawer";
-import List from "@mui/material/List";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import Typography from "@mui/material/Typography";
+import { motion } from "framer-motion";
+import { NavLink } from "react-router-dom";
 
-const SIDEBAR_WIDTH = 220;
+import { NAV_ITEMS } from "@/lib/nav";
+import { cn } from "@/lib/utils";
 
-export const NAV_ITEMS = [
-  { value: "dashboard", label: "Dashboard", icon: DashboardIcon },
-  { value: "collection", label: "Collection", icon: LibraryMusicIcon },
-  { value: "wishlist", label: "Wishlist", icon: FavoriteIcon },
-  { value: "search", label: "Search", icon: SearchIcon },
-  { value: "stats", label: "Stats", icon: BarChartIcon },
-];
-
-export default function Sidebar({ activePage, onSelectPage }) {
+export default function Sidebar() {
   return (
-    <Drawer
-      variant="permanent"
-      sx={{
-        width: SIDEBAR_WIDTH,
-        flexShrink: 0,
-        display: { xs: "none", md: "block" },
-        "& .MuiDrawer-paper": {
-          width: SIDEBAR_WIDTH,
-          boxSizing: "border-box",
-          bgcolor: "background.paper",
-          borderRight: 1,
-          borderColor: "divider",
-        },
-      }}
-    >
-      <Typography variant="h6" sx={{ p: 2, fontWeight: 700 }}>
-        Collection Tracker
-      </Typography>
-      <List sx={{ px: 1 }}>
-        {NAV_ITEMS.map(({ value, label, icon: Icon }) => (
-          <ListItemButton
-            key={value}
-            selected={activePage === value}
-            onClick={() => onSelectPage(value)}
-            sx={{ borderRadius: 1, mb: 0.5 }}
-          >
-            <ListItemIcon sx={{ minWidth: 36 }}>
-              <Icon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary={label} />
-          </ListItemButton>
+    <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
+      <div className="flex h-16 items-center px-5">
+        <span className="text-base font-semibold tracking-tight text-sidebar-foreground">
+          Collection Tracker
+        </span>
+      </div>
+      <nav className="flex flex-1 flex-col gap-0.5 px-3">
+        {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
+          <NavLink key={to} to={to} end={end} className="relative">
+            {({ isActive }) => (
+              <span
+                className={cn(
+                  "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  isActive
+                    ? "text-sidebar-primary-foreground"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                )}
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId="sidebar-active"
+                    className="absolute inset-0 rounded-lg bg-sidebar-primary"
+                    transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                  />
+                )}
+                <Icon className="relative size-4 shrink-0" strokeWidth={2} />
+                <span className="relative">{label}</span>
+              </span>
+            )}
+          </NavLink>
         ))}
-      </List>
-    </Drawer>
+      </nav>
+    </aside>
   );
 }
