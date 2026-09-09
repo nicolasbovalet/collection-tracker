@@ -33,7 +33,7 @@ export default function CollectionCoverGrid({ sections, onSelectRelease }) {
                 onKeyDown={(event) => {
                   if (event.key === "Enter") onSelectRelease(release);
                 }}
-                className="cursor-pointer overflow-hidden py-0 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                className="cursor-pointer overflow-hidden py-0 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] active:shadow-sm active:duration-75"
               >
                 {release.cover_art_url ? (
                   <img

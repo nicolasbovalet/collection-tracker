@@ -13,7 +13,7 @@ export default function MobileBottomNav() {
           end={end}
           className={({ isActive }) =>
             cn(
-              "flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors",
+              "flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium transition-all active:scale-95 active:opacity-70 active:duration-75",
               isActive ? "text-primary" : "text-muted-foreground"
             )
           }
